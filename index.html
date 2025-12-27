@@ -8,11 +8,11 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React & ReactDOM (UMD - Chạy trực tiếp trên trình duyệt) -->
+    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    <!-- Babel để dịch JSX -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Font -->
@@ -21,7 +21,6 @@
     <style>
         body { font-family: 'Outfit', sans-serif; }
         
-        /* Custom Animations */
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .animate-marquee { animation: marquee 40s linear infinite; }
         .animate-marquee:hover { animation-play-state: paused; }
@@ -44,7 +43,6 @@
         }
         .animate-fade-in { animation: fade-in 0.5s ease-out; }
 
-        /* Shooting Star Animation */
         .star-shooting span {
           position: absolute;
           top: 50%;
@@ -67,27 +65,14 @@
           background: linear-gradient(90deg, #fff, transparent);
         }
         @keyframes shooting {
-          0% {
-            transform: rotate(315deg) translateX(0);
-            opacity: 1;
-          }
-          70% {
-            opacity: 1;
-          }
-          100% {
-            transform: rotate(315deg) translateX(-1000px);
-            opacity: 0;
-          }
+          0% { transform: rotate(315deg) translateX(0); opacity: 1; }
+          70% { opacity: 1; }
+          100% { transform: rotate(315deg) translateX(-1000px); opacity: 0; }
         }
 
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
         
-        /* Sold out overlay */
-        .sold-out-overlay {
-            position: relative;
-        }
+        .sold-out-overlay { position: relative; }
         .sold-out-overlay::after {
             content: 'HẾT HÀNG';
             position: absolute;
@@ -103,16 +88,29 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             z-index: 30;
         }
+
+        .package-card {
+            transition: all 0.3s ease;
+        }
+        .package-card:hover {
+            transform: translateY(-4px);
+        }
+        .package-card.selected {
+            border-color: rgba(6, 182, 212, 0.8) !important;
+            background: rgba(6, 182, 212, 0.1) !important;
+        }
+        .package-card.popular {
+            border-color: rgba(168, 85, 247, 0.5);
+        }
     </style>
 </head>
 <body class="bg-black text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel">
-        // Lấy các hook từ React global
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- ĐỊNH NGHĨA ICON SVG TRỰC TIẾP (ĐẦY ĐỦ & KHÔNG LỖI) ---
+        // --- ICONS ---
         const IconStar = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
         const IconCheck = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
         const IconCheckCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
@@ -120,11 +118,7 @@
         const IconX = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
         const IconSparkles = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>;
         const IconRocket = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>;
-        const IconCloud = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11a4 4 0 1 1 0-8c0 0 .1 0 .1 0a6 6 0 0 1 11.2 0 4 4 0 0 1 2.7 7.9"/></svg>;
-        const IconBot = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>;
-        const IconPalette = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>;
         const IconHelpCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
-        const IconMonitor = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>;
         const IconBookOpen = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
         const IconUsers = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
         const IconAward = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
@@ -133,9 +127,7 @@
         const IconZap = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
         const IconGift = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>;
         const IconHeart = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
-        const IconPlay = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
         const IconArrowRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
-        const IconExternalLink = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>;
         const IconPhone = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
         const IconShoppingCart = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>;
         const IconLoader = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
@@ -144,39 +136,40 @@
         const IconChevronRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
         const IconPlus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
         const IconMinus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>;
-        const IconMessageCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>;
         const IconAlertCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
         const IconSend = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
         const IconRefresh = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>;
+        const IconGraduationCap = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>;
+        const IconClipboardList = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>;
+        const IconFileEdit = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5"/><polyline points="14 2 14 8 20 8"/><path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z"/></svg>;
+        const IconFileText = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>;
+        const IconPlayCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>;
+        const IconPackage = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
+        const IconTag = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>;
         
-        // --- CUSTOM BRAND ICONS ---
+        // Brand Icons
         const IconZalo = (props) => (
             <svg {...props} viewBox="0 0 50 50" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                  <path d="M25 4C13.4 4 4 11.8 4 21.4c0 4.1 1.7 8 4.7 11-.2 2.7-1.7 6.3-4.2 8.7 4.9.4 9.1-2 11.2-4.1 2.8 1.4 6 2.2 9.3 2.2 11.6 0 21-7.8 21-17.4S36.6 4 25 4zm4.1 23h-8.2v-2.1l6.1-8.6h-5.9v-2.8H29v2.1l-6.1 8.7h6.2v2.7z"/>
             </svg>
         );
-
         const IconGoogle = (props) => (
             <svg {...props} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .533 5.347.533 12S5.867 24 12.48 24c3.44 0 6.053-1.147 8.16-3.293 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.12H12.48z"/>
             </svg>
         );
-
         const IconChatGPT = (props) => (
             <svg {...props} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.98 4.18a5.985 5.985 0 0 0-3.96 5.29 6.046 6.046 0 0 0 3.386 5.847 6.051 6.051 0 0 0 10.5 2.823 5.985 5.985 0 0 0 3.96-5.29 6.033 6.033 0 0 0-3.386-5.847l-.847.5a4.985 4.985 0 0 1 .593 1.954 5.035 5.035 0 0 1-3.33 5.753l-.22.067-.067.22a5.035 5.035 0 0 1-5.753 3.33 4.985 4.985 0 0 1-1.954-.593l-.5.847a6.051 6.051 0 0 0 2.27 1.64 6.051 6.051 0 0 0 5.92-1.07 5.985 5.985 0 0 0 2.47-4.43 6.046 6.046 0 0 0-1.63-5.26l-.847.5zM12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20z" opacity="0.9"/>
-                <path d="M12.93 15.07a1.86 1.86 0 0 1-1.86 1.86 1.86 1.86 0 0 1-1.86-1.86 1.86 1.86 0 0 1 1.86 1.86z"/>
+                <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.98 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.516 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/>
             </svg>
         );
-
         const IconCanva = (props) => (
             <svg {...props} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12.001 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75-4.365-9.75-9.75-9.75zm3.75 14.25c-1.875 0-3.375-1.2-3.75-3.075-.075-.375-.075-.675-.075-1.05 0-2.1 1.65-3.825 3.75-3.825.6 0 1.05.075 1.5.3.15.075.225.225.225.375v.075c0 .15-.075.3-.225.375l-.6.375c-.15.075-.3.075-.45 0-.15-.075-.3-.15-.45-.15-.975 0-1.8.825-1.8 1.8s.825 1.8 1.8 1.8c.525 0 1.05-.225 1.35-.675.075-.15.225-.15.45-.075l.525.375c.15.075.15.3.075.45-.45.75-1.275 1.2-2.325 1.2z"/>
             </svg>
         );
 
-        // --- CẤU HÌNH ---
-        // ⚠️ QUAN TRỌNG: Thay URL này bằng URL Web App của bạn sau khi Deploy
+        // --- CONFIG ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf_nITfjuriTEFhUhqUI73jNNNrR5KhvkLIWokRKi_6dTI7gC8ASN8wkb11sNvFOYe/exec";
         
         const BANK_INFO = {
@@ -186,71 +179,215 @@
             qrLink: "https://img.vietqr.io/image/MB-11166774411-compact2.jpg" 
         };
 
-        const DEFAULT_REVIEWS = [];
+        // Cấu hình gói sản phẩm
+        const PACKAGE_CONFIG = {
+            pdf: {
+                id: 'pdf',
+                name: 'File PDF',
+                icon: <IconFileText className="w-5 h-5" />,
+                price: 30000,
+                priceDisplay: '30.000đ',
+                description: 'File PDF đề thi + đáp án chi tiết',
+                color: 'from-blue-500 to-cyan-500',
+                features: ['Đề thi đầy đủ', 'Đáp án chi tiết', 'Tải về ngay']
+            },
+            quiz1: {
+                id: 'quiz1',
+                name: '1 Lượt Quiz',
+                icon: <IconPlayCircle className="w-5 h-5" />,
+                price: 6000,
+                priceDisplay: '6.000đ',
+                description: '1 lượt làm quiz trắc nghiệm online',
+                color: 'from-green-500 to-emerald-500',
+                features: ['1 lượt làm bài', 'Chấm điểm tự động', 'Xem đáp án sau khi nộp']
+            },
+            quiz6: {
+                id: 'quiz6',
+                name: '6 Lượt Quiz',
+                icon: <IconPlayCircle className="w-5 h-5" />,
+                price: 30000,
+                priceDisplay: '30.000đ',
+                originalPrice: '36.000đ',
+                description: '6 lượt làm quiz (tiết kiệm 17%)',
+                color: 'from-emerald-500 to-teal-500',
+                features: ['6 lượt làm bài', 'Tiết kiệm 6.000đ', 'Không giới hạn thời gian'],
+                popular: true
+            },
+            quiz10: {
+                id: 'quiz10',
+                name: '10 Lượt Quiz',
+                icon: <IconPlayCircle className="w-5 h-5" />,
+                price: 40000,
+                priceDisplay: '40.000đ',
+                originalPrice: '60.000đ',
+                description: '10 lượt làm quiz (tiết kiệm 33%)',
+                color: 'from-teal-500 to-cyan-500',
+                features: ['10 lượt làm bài', 'Tiết kiệm 20.000đ', 'Ưu đãi tốt nhất']
+            },
+            combo: {
+                id: 'combo',
+                name: 'Combo Tiết Kiệm',
+                icon: <IconPackage className="w-5 h-5" />,
+                price: 50000,
+                priceDisplay: '50.000đ',
+                originalPrice: '60.000đ',
+                description: 'File PDF + 5 lượt Quiz',
+                color: 'from-purple-500 to-pink-500',
+                features: ['File PDF đầy đủ', '5 lượt làm Quiz', 'Tiết kiệm 10.000đ'],
+                bestValue: true
+            }
+        };
 
-        // --- DANH SÁCH KHÓA HỌC (DỮ LIỆU TĨNH BAN ĐẦU) ---
-        // ID ở đây PHẢI KHỚP với ID trong Google Sheet "Products"
-        const COURSES_DATA = [
+        // --- DATA ---
+        const GIUAKI_DATA = [
             {
-                id: 1, // Phải khớp với cột A trong Sheet Products
-                title: "Triết Học Nhập Môn",
-                description: "Khám phá nền tảng tư duy nhân loại từ Plato đến Kant. Phù hợp cho người mới bắt đầu.",
-                price: "5.000đ", 
-                priceVal: 5000,   
-                originalPrice: "999.000đ",
-                image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600",
-                trialLink: "https://youtu.be/example1", 
-                tags: ["Triết học", "Tư duy"],
+                id: 'gk1',
+                title: "Toán Cao Cấp",
+                description: "Bộ đề thi giữa kì môn Toán Cao Cấp kèm đáp án chi tiết và hướng dẫn giải.",
+                image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-toan-gk",
+                tags: ["Toán", "Giữa kì"],
+                subject: "Toán Cao Cấp",
                 students: 1234,
                 rating: 4.9,
-                lessons: 24,
-                duration: "12 giờ",
-                level: "Cơ bản",
+                questionCount: 50,
                 badge: "Bestseller",
-                quantity: -1 // -1 = đang loading, sẽ được cập nhật từ Sheet
+                quantity: -1
             },
             {
-                id: 2,
-                title: "Chủ Nghĩa Khắc Kỷ",
-                description: "Rèn luyện bản lĩnh và sự bình thản trước mọi biến cố của cuộc sống hiện đại.",
-                price: "350.000đ",
-                priceVal: 350000,
-                originalPrice: "700.000đ",
-                image: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?auto=format&fit=crop&q=80&w=600",
-                trialLink: "https://youtu.be/example2",
-                tags: ["Tâm lý", "Thực hành"],
+                id: 'gk2',
+                title: "Vật Lý Đại Cương",
+                description: "Tổng hợp đề thi giữa kì Vật Lý Đại Cương từ nhiều trường đại học.",
+                image: "https://images.unsplash.com/photo-1636466497217-26a8cbeaf0aa?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-vatly-gk",
+                tags: ["Vật lý", "Giữa kì"],
+                subject: "Vật Lý Đại Cương",
                 students: 892,
                 rating: 4.8,
-                lessons: 18,
-                duration: "8 giờ",
-                level: "Trung bình",
+                questionCount: 40,
                 badge: "Hot",
                 quantity: -1
             },
             {
-                id: 3,
-                title: "Tư Duy Phản Biện",
-                description: "Nâng cao khả năng lập luận, phân tích vấn đề và đưa ra quyết định chính xác.",
-                price: "599.000đ",
-                priceVal: 599000,
-                originalPrice: "1.200.000đ",
-                image: "https://images.unsplash.com/photo-1555445054-d1863b935484?auto=format&fit=crop&q=80&w=600",
-                trialLink: "https://youtu.be/example3",
-                tags: ["Kỹ năng mềm", "Logic"],
+                id: 'gk3',
+                title: "Lập Trình C++",
+                description: "Bộ đề giữa kì môn Lập Trình C++ với code mẫu và giải thích thuật toán.",
+                image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-cpp-gk",
+                tags: ["IT", "Giữa kì"],
+                subject: "Lập Trình C++",
                 students: 2156,
                 rating: 4.95,
-                lessons: 32,
-                duration: "16 giờ",
-                level: "Nâng cao",
+                questionCount: 35,
                 badge: "Premium",
+                quantity: -1
+            },
+            {
+                id: 'gk4',
+                title: "Hóa Đại Cương",
+                description: "Đề thi giữa kì Hóa Đại Cương với lời giải chi tiết từng bước.",
+                image: "https://images.unsplash.com/photo-1532634922-8fe0b757fb13?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-hoa-gk",
+                tags: ["Hóa học", "Giữa kì"],
+                subject: "Hóa Đại Cương",
+                students: 756,
+                rating: 4.7,
+                questionCount: 45,
+                badge: "",
+                quantity: -1
+            },
+            {
+                id: 'gk5',
+                title: "Tiếng Anh",
+                description: "Bộ đề giữa kì Tiếng Anh theo chuẩn TOEIC format.",
+                image: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-english-gk",
+                tags: ["Tiếng Anh", "Giữa kì"],
+                subject: "Tiếng Anh",
+                students: 1890,
+                rating: 4.85,
+                questionCount: 60,
+                badge: "Hot",
                 quantity: -1
             }
         ];
 
-        // --- DANH SÁCH TÀI KHOẢN ---
+        const CUOIKI_DATA = [
+            {
+                id: 'ck1',
+                title: "Toán Cao Cấp",
+                description: "Trọn bộ đề thi cuối kì môn Toán Cao Cấp với đáp án chi tiết từ A-Z.",
+                image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-toan-ck",
+                tags: ["Toán", "Cuối kì"],
+                subject: "Toán Cao Cấp",
+                students: 3456,
+                rating: 4.95,
+                questionCount: 80,
+                badge: "Bestseller",
+                quantity: -1
+            },
+            {
+                id: 'ck2',
+                title: "Vật Lý Đại Cương",
+                description: "Bộ đề cuối kì Vật Lý Đại Cương đầy đủ nhất, cập nhật mới nhất 2024.",
+                image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-vatly-ck",
+                tags: ["Vật lý", "Cuối kì"],
+                subject: "Vật Lý Đại Cương",
+                students: 1567,
+                rating: 4.85,
+                questionCount: 70,
+                badge: "Hot",
+                quantity: -1
+            },
+            {
+                id: 'ck3',
+                title: "Lập Trình C++",
+                description: "Tuyển tập đề cuối kì C++ từ cơ bản đến nâng cao, có video giải chi tiết.",
+                image: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-cpp-ck",
+                tags: ["IT", "Cuối kì"],
+                subject: "Lập Trình C++",
+                students: 2890,
+                rating: 4.9,
+                questionCount: 55,
+                badge: "Premium",
+                quantity: -1
+            },
+            {
+                id: 'ck4',
+                title: "Hóa Đại Cương",
+                description: "Đề thi cuối kì Hóa Đại Cương tổng hợp từ nhiều trường ĐH.",
+                image: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-hoa-ck",
+                tags: ["Hóa học", "Cuối kì"],
+                subject: "Hóa Đại Cương",
+                students: 945,
+                rating: 4.75,
+                questionCount: 65,
+                badge: "",
+                quantity: -1
+            },
+            {
+                id: 'ck5',
+                title: "Tiếng Anh",
+                description: "Bộ đề cuối kì Tiếng Anh chuẩn format TOEIC, IELTS Academic.",
+                image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://forms.gle/example-english-ck",
+                tags: ["Tiếng Anh", "Cuối kì"],
+                subject: "Tiếng Anh",
+                students: 2340,
+                rating: 4.88,
+                questionCount: 90,
+                badge: "Bestseller",
+                quantity: -1
+            }
+        ];
+
         const ACCOUNTS_DATA = [
             {
-                id: 'google', // Phải khớp với cột A trong Sheet Products
+                id: 'google',
                 title: "Tài khoản Google",
                 description: "12 tháng, 2 TB Drive, tạo ảnh Nana Banana Pro, Gemini 3 Pro, 1k credit Video Veo 3.1.",
                 price: "200.000đ", 
@@ -320,32 +457,33 @@
                 color: "from-amber-500 to-orange-400",
                 isContact: true,
                 features: ["Tư vấn miễn phí", "Hỗ trợ 24/7"],
-                quantity: 999 // Luôn có sẵn
+                quantity: 999
             }
         ];
 
         const STATS = [
             { icon: <IconUsers />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
-            { icon: <IconBookOpen />, value: "50+", label: "Khóa học", color: "from-purple-400 to-pink-500" },
+            { icon: <IconBookOpen />, value: "50+", label: "Bộ đề", color: "from-purple-400 to-pink-500" },
             { icon: <IconAward />, value: "99%", label: "Hài lòng", color: "from-amber-400 to-orange-500" },
             { icon: <IconClock />, value: "24/7", label: "Hỗ trợ", color: "from-emerald-400 to-teal-500" }
         ];
 
         const FEATURES = [
             { icon: <IconShield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
-            { icon: <IconZap />, title: "Kích hoạt tức thì", description: "Nhận tài khoản ngay sau khi thanh toán" },
+            { icon: <IconZap />, title: "Kích hoạt tức thì", description: "Nhận tài liệu ngay sau khi thanh toán" },
             { icon: <IconGift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
-            { icon: <IconHeart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7 giải đáp mọi thắc mắc" }
+            { icon: <IconHeart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7" }
         ];
 
         const SOCIAL_LINKS = [
             { name: "Zalo", url: "#", color: "from-blue-500 to-blue-600", icon: <IconZalo className="w-5 h-5 fill-current" /> },
             { name: "Facebook", url: "#", color: "from-blue-600 to-blue-800", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
-            { name: "X (Twitter)", url: "#", color: "from-gray-700 to-black", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
             { name: "Telegram", url: "#", color: "from-cyan-400 to-blue-500", icon: <IconSend className="w-6 h-6" /> }
         ];
 
-        // --- COMPONENTS & LOGIC ---
+        const DEFAULT_REVIEWS = [];
+
+        // --- COMPONENTS ---
         
         const ParticleField = () => {
              const canvasRef = useRef(null);
@@ -403,30 +541,17 @@
 
          const ShootingStars = () => {
             const [stars, setStars] = useState([]);
-
             useEffect(() => {
                 const interval = setInterval(() => {
-                    const newStar = {
-                        id: Date.now(),
-                        top: Math.random() * 50 + "%",
-                        left: Math.random() * 100 + "%",
-                        delay: Math.random() * 2 + "s"
-                    };
+                    const newStar = { id: Date.now(), top: Math.random() * 50 + "%", left: Math.random() * 100 + "%", delay: Math.random() * 2 + "s" };
                     setStars(prev => [...prev, newStar]);
-
-                    setTimeout(() => {
-                        setStars(prev => prev.filter(star => star.id !== newStar.id));
-                    }, 4000);
+                    setTimeout(() => { setStars(prev => prev.filter(star => star.id !== newStar.id)); }, 4000);
                 }, 2000);
-
                 return () => clearInterval(interval);
             }, []);
-
             return (
                 <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden star-shooting">
-                    {stars.map(star => (
-                        <span key={star.id} style={{ top: star.top, left: star.left, animationDelay: star.delay }} />
-                    ))}
+                    {stars.map(star => (<span key={star.id} style={{ top: star.top, left: star.left, animationDelay: star.delay }} />))}
                 </div>
             );
          };
@@ -435,9 +560,7 @@
              const [isVisible, setIsVisible] = useState(false);
              const ref = useRef(null);
              useEffect(() => {
-                 const observer = new IntersectionObserver(([entry]) => {
-                     if (entry.isIntersecting) setIsVisible(true);
-                 }, { threshold: 0.1 });
+                 const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); }, { threshold: 0.1 });
                  if (ref.current) observer.observe(ref.current);
                  return () => observer.disconnect();
              }, []);
@@ -461,16 +584,12 @@
              const handleMouseMove = (e) => {
                  if (!buttonRef.current) return;
                  const rect = buttonRef.current.getBoundingClientRect();
-                 const x = e.clientX - rect.left - rect.width / 2;
-                 const y = e.clientY - rect.top - rect.height / 2;
-                 setPosition({ x: x * 0.2, y: y * 0.2 });
+                 setPosition({ x: (e.clientX - rect.left - rect.width / 2) * 0.2, y: (e.clientY - rect.top - rect.height / 2) * 0.2 });
              };
              const handleMouseLeave = () => setPosition({ x: 0, y: 0 });
              return (
-                 <button
-                     ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
-                     className={`transform transition-transform duration-300 ${className}`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-                 >
+                 <button ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
+                     className={`transform transition-transform duration-300 ${className}`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}>
                      {children}
                  </button>
              );
@@ -499,98 +618,233 @@
              return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
          };
          
-         // Component hiển thị trạng thái tồn kho
          const StockBadge = ({ quantity }) => {
-             if (quantity === -1) {
-                 return (
-                     <span className="text-xs text-gray-500 flex items-center gap-1">
-                         <IconLoader className="w-3 h-3 animate-spin" /> Đang tải...
-                     </span>
-                 );
-             }
-             if (quantity === 0) {
-                 return <span className="text-xs text-red-400 font-bold">Hết hàng</span>;
-             }
-             if (quantity <= 5) {
-                 return <span className="text-xs text-orange-400">Còn {quantity} sản phẩm</span>;
-             }
+             if (quantity === -1) return <span className="text-xs text-gray-500 flex items-center gap-1"><IconLoader className="w-3 h-3 animate-spin" /> Đang tải...</span>;
+             if (quantity === 0) return <span className="text-xs text-red-400 font-bold">Hết hàng</span>;
+             if (quantity <= 5) return <span className="text-xs text-orange-400">Còn {quantity} sản phẩm</span>;
              return <span className="text-xs text-green-400">Còn hàng</span>;
          };
+
+         const SearchBar = ({ searchTerm, setSearchTerm, placeholder, accentColor = "cyan" }) => {
+             const colorClasses = {
+                 cyan: "focus:border-cyan-500 focus:ring-cyan-500/20",
+                 purple: "focus:border-purple-500 focus:ring-purple-500/20"
+             };
+             return (
+                 <div className="relative w-full md:w-80">
+                     <IconSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                     <input
+                         type="text"
+                         placeholder={placeholder}
+                         value={searchTerm}
+                         onChange={(e) => setSearchTerm(e.target.value)}
+                         className={`w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 outline-none transition-all ${colorClasses[accentColor]} focus:ring-4 focus:bg-white/10`}
+                     />
+                     {searchTerm && (
+                         <button onClick={() => setSearchTerm('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                             <IconX className="w-4 h-4" />
+                         </button>
+                     )}
+                 </div>
+             );
+         };
+
+         // Component hiển thị gói sản phẩm
+         const PackageSelector = ({ selectedPackage, onSelect }) => {
+             const packages = Object.values(PACKAGE_CONFIG);
+             
+             return (
+                 <div className="space-y-3">
+                     <label className="block text-sm font-medium text-gray-300 mb-3">Chọn gói sản phẩm:</label>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                         {packages.map((pkg) => (
+                             <div 
+                                 key={pkg.id}
+                                 onClick={() => onSelect(pkg)}
+                                 className={`package-card relative p-4 rounded-2xl border cursor-pointer transition-all ${
+                                     selectedPackage?.id === pkg.id 
+                                     ? 'selected border-cyan-500/80 bg-cyan-500/10' 
+                                     : pkg.popular 
+                                     ? 'popular border-purple-500/30 bg-white/5 hover:bg-white/10'
+                                     : pkg.bestValue
+                                     ? 'border-amber-500/30 bg-white/5 hover:bg-white/10'
+                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                 }`}
+                             >
+                                 {pkg.popular && (
+                                     <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-purple-500 text-white rounded-full">
+                                         PHỔ BIẾN
+                                     </span>
+                                 )}
+                                 {pkg.bestValue && (
+                                     <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full">
+                                         TIẾT KIỆM
+                                     </span>
+                                 )}
+                                 
+                                 <div className="flex items-start gap-3">
+                                     <div className={`p-2 rounded-xl bg-gradient-to-br ${pkg.color} text-white shrink-0`}>
+                                         {pkg.icon}
+                                     </div>
+                                     <div className="flex-1 min-w-0">
+                                         <div className="flex items-center justify-between gap-2">
+                                             <h4 className="font-bold text-white text-sm truncate">{pkg.name}</h4>
+                                             <div className="text-right shrink-0">
+                                                 <span className="font-bold text-cyan-400">{pkg.priceDisplay}</span>
+                                                 {pkg.originalPrice && (
+                                                     <span className="text-xs text-gray-500 line-through ml-1">{pkg.originalPrice}</span>
+                                                 )}
+                                             </div>
+                                         </div>
+                                         <p className="text-xs text-gray-400 mt-1">{pkg.description}</p>
+                                     </div>
+                                 </div>
+                                 
+                                 {selectedPackage?.id === pkg.id && (
+                                     <div className="absolute top-2 left-2">
+                                         <IconCheckCircle className="w-5 h-5 text-cyan-400 fill-cyan-400/20" />
+                                     </div>
+                                 )}
+                             </div>
+                         ))}
+                     </div>
+                 </div>
+             );
+         };
          
+         // Course Card mới với nút chọn gói
          const CourseCard = ({ course, index, onBuy }) => {
              const [isHovered, setIsHovered] = useState(false);
+             const [showPackages, setShowPackages] = useState(false);
+             const [selectedPackage, setSelectedPackage] = useState(null);
+             
              const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
              const isSoldOut = course.quantity === 0;
              const isLoading = course.quantity === -1;
 
+             const handleBuyClick = () => {
+                 if (selectedPackage) {
+                     onBuy(course, selectedPackage);
+                 }
+             };
+
              return (
                  <RevealOnScroll delay={index * 150}>
                      <GlassCard className="group h-full flex flex-col">
-                         <div className={`relative h-56 overflow-hidden rounded-t-[2.5rem] ${isSoldOut ? 'sold-out-overlay' : ''}`} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                         <div className={`relative h-48 overflow-hidden rounded-t-[2.5rem] ${isSoldOut ? 'sold-out-overlay' : ''}`} 
+                              onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
                              <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
-                             <img src={course.image} alt={course.title} className={`w-full h-full object-cover transition-all duration-700 ${isHovered && !isSoldOut ? 'scale-110 blur-sm' : 'scale-100'} ${isSoldOut ? 'grayscale opacity-60' : ''}`} />
+                             <img src={course.image} alt={course.title} 
+                                  className={`w-full h-full object-cover transition-all duration-700 ${isHovered && !isSoldOut ? 'scale-110 blur-sm' : 'scale-100'} ${isSoldOut ? 'grayscale opacity-60' : ''}`} />
                              
                              {!isSoldOut && !isLoading && (
-                                 <div className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                                     <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30">
-                                         <IconPlay className="w-6 h-6 text-white fill-white ml-1" />
+                                 <a href={course.trialLink} target="_blank" rel="noopener noreferrer" 
+                                    className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                                     <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30 hover:bg-white/30 transition-colors">
+                                         <IconFileEdit className="w-5 h-5 text-white" />
                                      </div>
-                                 </div>
+                                 </a>
                              )}
 
-                             <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2">
+                             <div className="absolute bottom-3 left-3 z-20 flex flex-wrap gap-2">
                                  {course.badge && !isSoldOut && (
-                                     <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
+                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
                                          {course.badge}
                                      </span>
                                  )}
-                                 {course.tags.map(tag => (
-                                     <span key={tag} className="px-3 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
-                                         {tag}
-                                     </span>
-                                 ))}
+                             </div>
+                             
+                             <div className="absolute top-3 right-3 z-20">
+                                 <span className="px-2 py-1 rounded-lg text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
+                                     {course.questionCount} câu hỏi
+                                 </span>
                              </div>
                          </div>
-                         <div className="p-6 flex-1 flex flex-col">
-                             <div className="flex items-center justify-between mb-3">
-                                 <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><IconStar className="w-4 h-4 fill-current" />{course.rating}</div>
-                                 <span className="text-xs text-gray-400 bg-gray-800/50 px-3 py-1 rounded-full">{course.level}</span>
+                         
+                         <div className="p-5 flex-1 flex flex-col">
+                             <div className="flex items-center justify-between mb-2">
+                                 <div className="flex items-center gap-1 text-amber-400 text-sm font-bold">
+                                     <IconStar className="w-4 h-4 fill-current" />{course.rating}
+                                 </div>
+                                 <span className="text-xs text-gray-400">{course.students.toLocaleString()} học viên</span>
                              </div>
-                             <h3 className={`text-xl font-bold text-white mb-2 transition-colors ${isSoldOut ? 'text-gray-500' : 'group-hover:text-cyan-400'}`}>{course.title}</h3>
-                             <p className="text-gray-400 text-sm mb-4 flex-1">{course.description}</p>
                              
-                             {/* Hiển thị trạng thái tồn kho */}
+                             <h3 className={`text-lg font-bold text-white mb-2 transition-colors ${isSoldOut ? 'text-gray-500' : 'group-hover:text-cyan-400'}`}>
+                                 {course.title}
+                             </h3>
+                             <p className="text-gray-400 text-sm mb-4 flex-1 line-clamp-2">{course.description}</p>
+                             
+                             {/* Hiển thị các gói giá */}
+                             <div className="mb-4">
+                                 <div className="flex flex-wrap gap-2 text-xs">
+                                     <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                         PDF: 30k
+                                     </span>
+                                     <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                                         Quiz: từ 6k
+                                     </span>
+                                     <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                         Combo: 50k
+                                     </span>
+                                 </div>
+                             </div>
+                             
                              <div className="mb-3">
                                  <StockBadge quantity={course.quantity} />
                              </div>
                              
-                             <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                                 <div>
-                                     <span className={`text-2xl font-bold ${isSoldOut ? 'text-gray-600 line-through' : 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500'}`}>{course.price}</span>
-                                 </div>
-                                 <div className="flex gap-2">
-                                     {!isSoldOut && !isLoading && (
-                                         <a href={course.trialLink} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors border border-white/10 flex items-center justify-center" title="Học thử">
-                                             <div className="flex items-center gap-2">
-                                                <IconPlay className="w-5 h-5 text-white fill-white" />
-                                             </div>
+                             {/* Nút chọn gói hoặc hiển thị gói */}
+                             {!showPackages ? (
+                                 <div className="flex gap-2 pt-3 border-t border-white/10">
+                                     {!isSoldOut && !isLoading && course.trialLink && (
+                                         <a href={course.trialLink} target="_blank" rel="noopener noreferrer" 
+                                            className="flex-1 px-4 py-2.5 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium flex items-center justify-center gap-2 transition-all text-sm"
+                                            title="Làm thử miễn phí">
+                                             <IconFileEdit className="w-4 h-4" />
+                                             Làm thử
                                          </a>
                                      )}
-                                     <button onClick={() => !isSoldOut && !isLoading && onBuy(course)} 
-                                        disabled={isSoldOut || isLoading}
-                                        className={`px-5 py-2.5 rounded-full font-medium flex items-center gap-2 transition-all ${
-                                            isSoldOut 
-                                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' 
-                                            : isLoading
-                                            ? 'bg-gray-700 text-gray-400 cursor-wait'
-                                            : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 group/btn'
-                                        }`}>
-                                         {isSoldOut ? 'Hết chỗ' : isLoading ? <IconLoader className="w-4 h-4 animate-spin" /> : (
-                                             <>Mua ngay <IconArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" /></>
+                                     <button 
+                                         onClick={() => !isSoldOut && !isLoading && setShowPackages(true)} 
+                                         disabled={isSoldOut || isLoading}
+                                         className={`flex-1 px-4 py-2.5 rounded-full font-medium flex items-center justify-center gap-2 transition-all text-sm ${
+                                             isSoldOut 
+                                             ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' 
+                                             : isLoading
+                                             ? 'bg-gray-700 text-gray-400 cursor-wait'
+                                             : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20'
+                                         }`}>
+                                         {isSoldOut ? 'Hết hàng' : isLoading ? <IconLoader className="w-4 h-4 animate-spin" /> : (
+                                             <>
+                                                 <IconShoppingCart className="w-4 h-4" />
+                                                 Mua ngay
+                                             </>
                                          )}
                                      </button>
                                  </div>
-                             </div>
+                             ) : (
+                                 <div className="pt-3 border-t border-white/10 space-y-3">
+                                     <PackageSelector selectedPackage={selectedPackage} onSelect={setSelectedPackage} />
+                                     
+                                     <div className="flex gap-2">
+                                         <button 
+                                             onClick={() => { setShowPackages(false); setSelectedPackage(null); }}
+                                             className="px-4 py-2 rounded-full bg-gray-700 hover:bg-gray-600 text-white text-sm">
+                                             Hủy
+                                         </button>
+                                         <button 
+                                             onClick={handleBuyClick}
+                                             disabled={!selectedPackage}
+                                             className={`flex-1 px-4 py-2 rounded-full font-medium text-sm transition-all ${
+                                                 selectedPackage 
+                                                 ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white' 
+                                                 : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                             }`}>
+                                             {selectedPackage ? `Mua ${selectedPackage.priceDisplay}` : 'Chọn gói'}
+                                         </button>
+                                     </div>
+                                 </div>
+                             )}
                          </div>
                      </GlassCard>
                  </RevealOnScroll>
@@ -611,25 +865,19 @@
                          <p className="text-xs font-medium mb-3 text-gray-400 uppercase">{account.platform}</p>
                          <p className="text-gray-400 text-sm mb-4 flex-1">{account.description}</p>
                          
-                         {/* Hiển thị trạng thái tồn kho */}
                          {!account.isContact && (
-                             <div className="mb-3">
-                                 <StockBadge quantity={account.quantity} />
-                             </div>
+                             <div className="mb-3"><StockBadge quantity={account.quantity} /></div>
                          )}
                          
                          <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
                              <span className={`text-xl font-bold ${isSoldOut ? 'text-gray-500' : (account.isContact ? 'text-amber-400' : 'text-white')}`}>{account.price}</span>
-                             <button onClick={() => !isSoldOut && !isLoading && onBuy(account)}
+                             <button onClick={() => !isSoldOut && !isLoading && onBuy(account, null)}
                                 disabled={isSoldOut || isLoading}
                                 className={`px-5 py-2.5 rounded-full font-medium flex items-center gap-2 ${
-                                    isSoldOut 
-                                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' 
-                                    : isLoading
-                                    ? 'bg-gray-700 text-gray-400 cursor-wait'
-                                    : account.isContact 
-                                        ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20' 
-                                        : `bg-gradient-to-r ${account.color} hover:opacity-90 shadow-lg`
+                                    isSoldOut ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' 
+                                    : isLoading ? 'bg-gray-700 text-gray-400 cursor-wait'
+                                    : account.isContact ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20' 
+                                    : `bg-gradient-to-r ${account.color} hover:opacity-90 shadow-lg`
                                 } text-white shadow-md`}>
                                  {account.isContact ? <IconPhone size={16} /> : isSoldOut ? null : isLoading ? <IconLoader size={16} className="animate-spin" /> : <IconShoppingCart size={16} />}
                                  {isSoldOut ? 'Hết hàng' : isLoading ? '...' : (account.isContact ? 'Liên hệ' : 'Mua')}
@@ -667,13 +915,16 @@
             const [scrolled, setScrolled] = useState(false);
             const [scrollProgress, setScrollProgress] = useState(0);
             
-            // State for Data (để có thể update sau khi fetch)
-            const [courses, setCourses] = useState(COURSES_DATA);
+            const [searchGiuaKi, setSearchGiuaKi] = useState('');
+            const [searchCuoiKi, setSearchCuoiKi] = useState('');
+            
+            const [giuaKi, setGiuaKi] = useState(GIUAKI_DATA);
+            const [cuoiKi, setCuoiKi] = useState(CUOIKI_DATA);
             const [apps, setApps] = useState(ACCOUNTS_DATA);
             const [isLoadingStock, setIsLoadingStock] = useState(true);
 
-            // Logic Đặt hàng / Tra cứu
             const [selectedProduct, setSelectedProduct] = useState(null);
+            const [selectedPackage, setSelectedPackage] = useState(null);
             const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', quantity: 1 });
             const [orderStep, setOrderStep] = useState(1);
             const [searchEmail, setSearchEmail] = useState('');
@@ -682,11 +933,30 @@
             const [generatedOrderId, setGeneratedOrderId] = useState(''); 
             const [orderError, setOrderError] = useState(null);
             
-            // Logic Feedback
             const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
-            const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
+            const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua đề thi' });
             const [isSubmitting, setIsSubmitting] = useState(false);
             const [paidKey, setPaidKey] = useState(null); 
+
+            const filteredGiuaKi = useMemo(() => {
+                if (!searchGiuaKi.trim()) return giuaKi;
+                const term = searchGiuaKi.toLowerCase();
+                return giuaKi.filter(item => 
+                    item.title.toLowerCase().includes(term) || 
+                    item.subject.toLowerCase().includes(term) ||
+                    item.tags.some(tag => tag.toLowerCase().includes(term))
+                );
+            }, [giuaKi, searchGiuaKi]);
+
+            const filteredCuoiKi = useMemo(() => {
+                if (!searchCuoiKi.trim()) return cuoiKi;
+                const term = searchCuoiKi.toLowerCase();
+                return cuoiKi.filter(item => 
+                    item.title.toLowerCase().includes(term) || 
+                    item.subject.toLowerCase().includes(term) ||
+                    item.tags.some(tag => tag.toLowerCase().includes(term))
+                );
+            }, [cuoiKi, searchCuoiKi]);
 
             useEffect(() => {
                 const handleScroll = () => {
@@ -696,11 +966,8 @@
                     setScrollProgress(progress);
                 };
                 window.addEventListener('scroll', handleScroll);
-                
-                // Fetch data
                 fetchReviews();
                 fetchInventory();
-
                 return () => window.removeEventListener('scroll', handleScroll);
             }, []);
 
@@ -715,7 +982,6 @@
                                 setPaidKey(data.key);
                                 setOrderStep(3); 
                                 clearInterval(interval);
-                                // Refresh lại tồn kho sau khi thanh toán thành công
                                 fetchInventory();
                             }
                         } catch (e) { console.error("Polling error", e); }
@@ -732,59 +998,42 @@
                 } catch (e) { console.error(e); }
             };
 
-            // Hàm lấy số lượng tồn kho từ Google Sheet
             const fetchInventory = async () => {
                 setIsLoadingStock(true);
                 try {
                     const res = await fetch(`${SCRIPT_URL}?action=get_products`);
-                    
                     if (!res.ok) throw new Error("Server response not ok");
-                    
                     const data = await res.json();
                     
                     if (Array.isArray(data) && data.length > 0) {
-                        // Hàm cập nhật chung cho cả Courses và Apps
                         const updateFromSheet = (localList) => localList.map(localItem => {
                             const sheetItem = data.find(i => String(i.id) === String(localItem.id));
-                            if (sheetItem) {
-                                return { ...localItem, quantity: parseInt(sheetItem.quantity) || 0 };
-                            } else {
-                                // Không tìm thấy -> giữ nguyên quantity hiện tại (có thể là default)
-                                // Hoặc set về 0 nếu muốn nghiêm ngặt hơn
-                                return { ...localItem, quantity: localItem.quantity === -1 ? 0 : localItem.quantity };
-                            }
+                            return sheetItem ? { ...localItem, quantity: parseInt(sheetItem.quantity) || 0 } : { ...localItem, quantity: localItem.quantity === -1 ? 0 : localItem.quantity };
                         });
-
-                        setCourses(prev => updateFromSheet(prev));
+                        setGiuaKi(prev => updateFromSheet(prev));
+                        setCuoiKi(prev => updateFromSheet(prev));
                         setApps(prev => updateFromSheet(prev));
-                        
-                        console.log("✅ Đã cập nhật kho hàng từ Google Sheet:", data);
                     } else {
-                        console.warn("⚠️ Sheet Products trống hoặc không có dữ liệu");
-                        // Set quantity về 0 nếu không fetch được
-                        setCourses(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 0 : item.quantity })));
-                        setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 0 : item.quantity })));
+                        setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                        setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                        setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                     }
                 } catch (e) { 
-                    console.warn("❌ Không thể kết nối đến kho hàng:", e.message);
-                    // Khi lỗi, set về 0 để hiển thị "Hết hàng" thay vì loading mãi
-                    setCourses(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 0 : item.quantity })));
-                    setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 0 : item.quantity })));
+                    setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                    setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                    setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                 } finally {
                     setIsLoadingStock(false);
                 }
             };
 
-            const handleBuyClick = (product) => {
-                if (product.quantity <= 0) {
-                    alert("Sản phẩm này đã hết hàng!");
-                    return;
-                }
-
+            const handleBuyClick = (product, pkg) => {
+                if (product.quantity <= 0) { alert("Sản phẩm này đã hết hàng!"); return; }
                 if(product.isContact) {
                     document.getElementById('lien-he')?.scrollIntoView({ behavior: 'smooth' });
                 } else {
                     setSelectedProduct(product);
+                    setSelectedPackage(pkg);
                     setOrderForm(prev => ({ ...prev, quantity: 1 }));
                     setOrderStep(1);
                     setPaidKey(null);
@@ -796,7 +1045,6 @@
             const validateOrderForm = () => {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
-                
                 if (!orderForm.name.trim()) return "Vui lòng nhập họ tên.";
                 if (!phoneRegex.test(orderForm.phone)) return "Vui lòng nhập số điện thoại hợp lệ (10 số).";
                 if (!emailRegex.test(orderForm.email)) return "Vui lòng nhập email hợp lệ.";
@@ -807,11 +1055,25 @@
                 e.preventDefault();
                 setOrderError(null);
                 const error = validateOrderForm();
-                if (error) {
-                    setOrderError(error);
-                    return;
-                }
+                if (error) { setOrderError(error); return; }
                 setOrderStep(1.5); 
+            };
+
+            const getTotalPrice = () => {
+                if (selectedPackage) {
+                    return selectedPackage.price * orderForm.quantity;
+                }
+                if (selectedProduct?.priceVal) {
+                    return selectedProduct.priceVal * orderForm.quantity;
+                }
+                return 0;
+            };
+
+            const getProductDisplayName = () => {
+                if (selectedPackage) {
+                    return `${selectedProduct?.title} - ${selectedPackage.name}`;
+                }
+                return selectedProduct?.title || '';
             };
 
             const handleConfirmOrder = async () => {
@@ -819,40 +1081,24 @@
                 const newOrderId = "DH" + Math.floor(Math.random() * 100000);
                 setGeneratedOrderId(newOrderId);
 
-                // --- OPTIMISTIC UPDATE: Trừ số lượng ngay lập tức trên giao diện ---
-                if (selectedProduct) {
-                    const reduceStock = (items) => items.map(item => 
-                        String(item.id) === String(selectedProduct.id)
-                            ? { ...item, quantity: Math.max(0, item.quantity - orderForm.quantity) }
-                            : item
-                    );
-                    setCourses(prev => reduceStock(prev));
-                    setApps(prev => reduceStock(prev));
-                }
-
                 try {
                     await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({
-                            action: 'create_order',
-                            orderId: newOrderId,
-                            name: orderForm.name,
-                            email: orderForm.email,
+                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ 
+                            action: 'create_order', 
+                            orderId: newOrderId, 
+                            name: orderForm.name, 
+                            email: orderForm.email, 
                             phone: orderForm.phone, 
-                            product: selectedProduct.title,
-                            productId: selectedProduct.id, // Gửi ID để Sheet biết đường trừ kho
-                            price: selectedProduct.priceVal * orderForm.quantity,
-                            quantity: orderForm.quantity
+                            product: getProductDisplayName(), 
+                            productId: selectedProduct?.id,
+                            packageId: selectedPackage?.id || 'app',
+                            price: getTotalPrice(), 
+                            quantity: orderForm.quantity 
                         })
                     });
                     setOrderStep(2); 
-                } catch (e) { 
-                    alert("Lỗi kết nối!"); 
-                    // Rollback nếu lỗi
-                    fetchInventory();
-                }
+                } catch (e) { alert("Lỗi kết nối!"); }
                 setIsSubmitting(false);
             };
 
@@ -869,29 +1115,18 @@
 
             const handleFbSubmit = async (e) => {
                 e.preventDefault();
-                if (!fbForm.email || !fbForm.email.includes('@')) {
-                    alert("Vui lòng nhập địa chỉ email hợp lệ!");
-                    return;
-                }
+                if (!fbForm.email || !fbForm.email.includes('@')) { alert("Vui lòng nhập địa chỉ email hợp lệ!"); return; }
                 setIsSubmitting(true);
                 try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({ action: 'submit_feedback', ...fbForm })
-                    });
+                    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'submit_feedback', ...fbForm }) });
                     alert("Cảm ơn đánh giá của bạn!");
-                    setFbForm({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
+                    setFbForm({ name: '', email: '', message: '', rating: 5, type: 'Mua đề thi' });
                     setTimeout(fetchReviews, 2000);
                 } catch (e) { alert("Lỗi gửi!"); }
                 setIsSubmitting(false);
             };
 
-            const copyToClipboard = (text) => {
-                navigator.clipboard.writeText(text);
-                alert("Đã sao chép: " + text);
-            };
+            const copyToClipboard = (text) => { navigator.clipboard.writeText(text); alert("Đã sao chép: " + text); };
 
             const renderMarqueeRow = (items, direction = 'left') => {
                 if (items.length === 0) return null;
@@ -908,24 +1143,13 @@
 
             const handleOrderChange = (e) => {
                 const { name, value } = e.target;
-                if (name === 'phone') {
-                    const numericValue = value.replace(/\D/g, ''); 
-                    setOrderForm(prev => ({ ...prev, [name]: numericValue }));
-                    return;
-                }
+                if (name === 'phone') { setOrderForm(prev => ({ ...prev, [name]: value.replace(/\D/g, '') })); return; }
                 setOrderForm(prev => ({ ...prev, [name]: value }));
             };
 
-            const incrementQuantity = () => {
-                const maxQty = selectedProduct ? Math.min(10, selectedProduct.quantity) : 10;
-                setOrderForm(prev => ({ ...prev, quantity: Math.min(maxQty, prev.quantity + 1) }));
-            };
+            const incrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.min(10, prev.quantity + 1) }));
             const decrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }));
-            
-            const handleInputChange = (e) => {
-                const { name, value } = e.target;
-                setFbForm(prev => ({ ...prev, [name]: value }));
-            };
+            const handleInputChange = (e) => { const { name, value } = e.target; setFbForm(prev => ({ ...prev, [name]: value })); };
 
             return (
                 <div className="min-h-screen bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
@@ -952,22 +1176,16 @@
                             </div>
 
                             <div className="hidden md:flex gap-6 items-center">
-                                {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
                                     <button key={item} 
                                         onClick={() => document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'})}
-                                        className="text-gray-300 hover:text-white text-sm font-medium transition-colors relative group"
-                                    >
+                                        className="text-gray-300 hover:text-white text-sm font-medium transition-colors relative group">
                                         {item}
                                         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
                                     </button>
                                 ))}
-                                {/* Nút Refresh Stock */}
-                                <button 
-                                    onClick={fetchInventory} 
-                                    disabled={isLoadingStock}
-                                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-all"
-                                    title="Cập nhật tồn kho"
-                                >
+                                <button onClick={fetchInventory} disabled={isLoadingStock}
+                                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white transition-all" title="Cập nhật">
                                     <IconRefresh className={`w-4 h-4 ${isLoadingStock ? 'animate-spin' : ''}`} />
                                 </button>
                             </div>
@@ -979,16 +1197,9 @@
                         
                         {isMenuOpen && (
                             <div className="md:hidden bg-[#0A1220] border-t border-white/10 p-4 space-y-3">
-                                {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
-                                    <button key={item} 
-                                        onClick={() => {
-                                            document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'});
-                                            setIsMenuOpen(false);
-                                        }}
-                                        className="block w-full text-left text-gray-300 py-2"
-                                    >
-                                        {item}
-                                    </button>
+                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                    <button key={item} onClick={() => { document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'}); setIsMenuOpen(false); }}
+                                        className="block w-full text-left text-gray-300 py-2">{item}</button>
                                 ))}
                             </div>
                         )}
@@ -999,29 +1210,99 @@
                         <RevealOnScroll>
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-8">
                                 <IconSparkles className="w-4 h-4 text-cyan-400" />
-                                <span className="text-sm text-cyan-400 font-medium">Nền tảng học tập #1 Việt Nam</span>
+                                <span className="text-sm text-cyan-400 font-medium">Nền tảng tài liệu học tập #1 Việt Nam</span>
                             </div>
                             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight">
                                 <span className="block text-white mb-2">Khai Phá</span>
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Tri Thức Vũ Trụ</span>
                             </h1>
-                            <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
-                                Khóa học chuyên sâu và tài khoản Premium chất lượng cao. Nâng tầm tư duy với chi phí tối ưu.
+                            <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+                                Đề thi Giữa kì, Cuối kì và tài khoản Premium chất lượng cao.
                             </p>
+                            
+                            {/* Hiển thị bảng giá tổng quan */}
+                            <div className="flex flex-wrap justify-center gap-4 mb-12">
+                                <div className="px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm">
+                                    <IconFileText className="w-4 h-4 inline mr-2" />
+                                    File PDF: <span className="font-bold">30.000đ</span>
+                                </div>
+                                <div className="px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-sm">
+                                    <IconPlayCircle className="w-4 h-4 inline mr-2" />
+                                    Quiz: <span className="font-bold">từ 6.000đ</span>
+                                </div>
+                                <div className="px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm">
+                                    <IconPackage className="w-4 h-4 inline mr-2" />
+                                    Combo: <span className="font-bold">50.000đ</span>
+                                </div>
+                            </div>
+                            
                             <div className="flex flex-col sm:flex-row justify-center gap-4">
-                                <MagneticButton onClick={() => document.getElementById('khoa-hoc').scrollIntoView({ behavior: 'smooth' })} 
+                                <MagneticButton onClick={() => document.getElementById('giua-ki').scrollIntoView({ behavior: 'smooth' })} 
                                     className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold text-base shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] flex items-center justify-center gap-2 transition-all duration-300 min-w-[240px]">
-                                    <IconBookOpen size={18} /> KHÁM PHÁ KHÓA HỌC <IconChevronRight size={16} />
+                                    <IconClipboardList size={18} /> ĐỀ GIỮA KÌ <IconChevronRight size={16} />
                                 </MagneticButton>
-                                <MagneticButton onClick={() => document.getElementById('ung-dung').scrollIntoView({ behavior: 'smooth' })} 
+                                <MagneticButton onClick={() => document.getElementById('cuoi-ki').scrollIntoView({ behavior: 'smooth' })} 
                                     className="px-8 py-3 rounded-full bg-white/5 hover:bg-white/10 border border-white/20 text-white font-semibold text-base backdrop-blur-md flex items-center justify-center gap-2 transition-all duration-300 hover:border-white/40 min-w-[240px]">
-                                    <IconMonitor size={18} /> XEM ỨNG DỤNG
+                                    <IconGraduationCap size={18} /> ĐỀ CUỐI KÌ
                                 </MagneticButton>
                             </div>
                         </RevealOnScroll>
                     </section>
 
-                     {/* Stats Section */}
+                    {/* Pricing Overview */}
+                    <section className="relative z-10 py-16 px-4">
+                        <div className="max-w-5xl mx-auto">
+                            <RevealOnScroll>
+                                <div className="text-center mb-12">
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Bảng Giá Chi Tiết</h2>
+                                    <p className="text-gray-400">Chọn gói phù hợp với nhu cầu học tập của bạn</p>
+                                </div>
+                            </RevealOnScroll>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                {Object.values(PACKAGE_CONFIG).map((pkg, idx) => (
+                                    <RevealOnScroll key={pkg.id} delay={idx * 100}>
+                                        <GlassCard className={`p-5 text-center h-full relative ${pkg.bestValue ? 'border-amber-500/50' : pkg.popular ? 'border-purple-500/50' : ''}`}>
+                                            {pkg.bestValue && (
+                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full whitespace-nowrap">
+                                                    TIẾT KIỆM NHẤT
+                                                </div>
+                                            )}
+                                            {pkg.popular && !pkg.bestValue && (
+                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">
+                                                    PHỔ BIẾN
+                                                </div>
+                                            )}
+                                            
+                                            <div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-br ${pkg.color} flex items-center justify-center text-white mb-4`}>
+                                                {pkg.icon}
+                                            </div>
+                                            
+                                            <h3 className="font-bold text-white mb-2">{pkg.name}</h3>
+                                            
+                                            <div className="mb-3">
+                                                <span className="text-2xl font-bold text-cyan-400">{pkg.priceDisplay}</span>
+                                                {pkg.originalPrice && (
+                                                    <span className="text-sm text-gray-500 line-through ml-2">{pkg.originalPrice}</span>
+                                                )}
+                                            </div>
+                                            
+                                            <ul className="text-xs text-gray-400 space-y-1">
+                                                {pkg.features.map((f, i) => (
+                                                    <li key={i} className="flex items-center gap-1 justify-center">
+                                                        <IconCheck className="w-3 h-3 text-green-400" />
+                                                        {f}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </GlassCard>
+                                    </RevealOnScroll>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Stats Section */}
                     <section className="relative z-10 py-10 px-4">
                         <RevealOnScroll delay={400}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto">
@@ -1041,7 +1322,7 @@
                     </section>
 
                     {/* Features */}
-                    <section className="relative z-10 py-20">
+                    <section className="relative z-10 py-16">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {FEATURES.map((feature, idx) => (
@@ -1059,19 +1340,82 @@
                         </div>
                     </section>
 
-                    {/* Courses */}
-                    <section id="khoa-hoc" className="py-20 px-4 max-w-7xl mx-auto">
+                    {/* GIỮA KÌ Section */}
+                    <section id="giua-ki" className="py-20 px-4 max-w-7xl mx-auto">
                         <RevealOnScroll>
-                            <div className="text-center mb-16">
-                                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Khóa Học Triết Học</h2>
-                                <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full" />
+                            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+                                <div className="text-center md:text-left">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 mb-4">
+                                        <IconClipboardList className="w-5 h-5 text-cyan-400" />
+                                        <span className="text-sm text-cyan-400 font-medium">Tài liệu ôn tập</span>
+                                    </div>
+                                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Đề Thi Giữa Kì</h2>
+                                    <p className="text-gray-400 max-w-xl">Bộ sưu tập đề thi giữa kì từ các trường đại học hàng đầu</p>
+                                </div>
+                                
+                                <SearchBar 
+                                    searchTerm={searchGiuaKi} 
+                                    setSearchTerm={setSearchGiuaKi} 
+                                    placeholder="Tìm môn học..."
+                                    accentColor="cyan"
+                                />
                             </div>
                         </RevealOnScroll>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {courses.map((course, idx) => (
-                                <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
-                            ))}
-                        </div>
+                        
+                        {filteredGiuaKi.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredGiuaKi.map((course, idx) => (
+                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-16">
+                                <IconSearch className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                <p className="text-gray-400 text-lg">Không tìm thấy môn học "{searchGiuaKi}"</p>
+                                <button onClick={() => setSearchGiuaKi('')} className="mt-4 text-cyan-400 hover:text-cyan-300 underline">
+                                    Xóa bộ lọc
+                                </button>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* CUỐI KÌ Section */}
+                    <section id="cuoi-ki" className="py-20 px-4 max-w-7xl mx-auto">
+                        <RevealOnScroll>
+                            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+                                <div className="text-center md:text-left">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 mb-4">
+                                        <IconGraduationCap className="w-5 h-5 text-purple-400" />
+                                        <span className="text-sm text-purple-400 font-medium">Tài liệu ôn tập</span>
+                                    </div>
+                                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">Đề Thi Cuối Kì</h2>
+                                    <p className="text-gray-400 max-w-xl">Trọn bộ đề thi cuối kì đầy đủ nhất, cập nhật liên tục</p>
+                                </div>
+                                
+                                <SearchBar 
+                                    searchTerm={searchCuoiKi} 
+                                    setSearchTerm={setSearchCuoiKi} 
+                                    placeholder="Tìm môn học..."
+                                    accentColor="purple"
+                                />
+                            </div>
+                        </RevealOnScroll>
+                        
+                        {filteredCuoiKi.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredCuoiKi.map((course, idx) => (
+                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-16">
+                                <IconSearch className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                                <p className="text-gray-400 text-lg">Không tìm thấy môn học "{searchCuoiKi}"</p>
+                                <button onClick={() => setSearchCuoiKi('')} className="mt-4 text-purple-400 hover:text-purple-300 underline">
+                                    Xóa bộ lọc
+                                </button>
+                            </div>
+                        )}
                     </section>
 
                     {/* Apps */}
@@ -1079,10 +1423,10 @@
                         <RevealOnScroll>
                             <div className="text-center mb-16">
                                 <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Tài Khoản & Ứng Dụng</h2>
-                                <div className="h-1 w-24 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full" />
+                                <div className="h-1 w-24 bg-gradient-to-r from-emerald-500 to-teal-500 mx-auto rounded-full" />
                             </div>
                         </RevealOnScroll>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {apps.map((acc, idx) => (
                                 <AccountCard key={acc.id} account={acc} index={idx} onBuy={handleBuyClick} />
                             ))}
@@ -1097,73 +1441,82 @@
                                     <h2 className="text-2xl font-bold text-cyan-400">
                                         {orderStep === 1 ? 'Thông Tin Đặt Hàng' : orderStep === 1.5 ? 'Xác Nhận Thông Tin' : orderStep === 2 ? 'Thanh Toán' : 'Thành Công'}
                                     </h2>
-                                    <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-white"><IconX /></button>
+                                    <button onClick={() => { setSelectedProduct(null); setSelectedPackage(null); }} className="text-gray-400 hover:text-white"><IconX /></button>
                                 </div>
                                 
                                 {orderError && (
                                     <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-300 text-sm animate-fade-in-down">
-                                        <IconAlertCircle size={16} />
-                                        {orderError}
+                                        <IconAlertCircle size={16} />{orderError}
                                     </div>
                                 )}
 
                                 {orderStep === 1 ? (
                                     <form onSubmit={handleOrderSubmit} className="space-y-4">
-                                        <div className="bg-white/5 p-4 rounded-xl mb-4 flex flex-col gap-3 border border-white/10">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-medium text-white">{selectedProduct?.title}</span>
-                                                <span className="text-cyan-400 font-bold">{selectedProduct?.price}</span>
-                                            </div>
-                                            
-                                            {/* Hiện số lượng còn */}
-                                            <div className="text-xs text-gray-400">
-                                                <StockBadge quantity={selectedProduct?.quantity || 0} />
-                                            </div>
-                                            
-                                            {/* QUANTITY SELECTOR */}
-                                            <div className="flex items-center justify-between border-t border-white/10 pt-3">
-                                                <span className="text-gray-400 text-sm">Số lượng:</span>
-                                                <div className="flex items-center gap-3">
-                                                    <button type="button" onClick={decrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white">
-                                                        <IconMinus size={16} />
-                                                    </button>
-                                                    <span className="text-white font-bold w-6 text-center">{orderForm.quantity}</span>
-                                                    <button type="button" onClick={incrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white">
-                                                        <IconPlus size={16} />
-                                                    </button>
+                                        {/* Chi tiết sản phẩm đã chọn */}
+                                        <div className="bg-white/5 p-4 rounded-xl mb-4 border border-white/10">
+                                            <div className="flex items-start gap-4 mb-4">
+                                                {selectedProduct?.image && (
+                                                    <img src={selectedProduct.image} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                                                )}
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-white">{selectedProduct?.title}</h3>
+                                                    {selectedPackage && (
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r ${selectedPackage.color} text-white`}>
+                                                                {selectedPackage.name}
+                                                            </span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                             
-                                            <div className="flex justify-between items-center border-t border-white/10 pt-3">
+                                            {/* Nếu là App thì không có gói */}
+                                            {selectedPackage && (
+                                                <div className="bg-black/30 p-3 rounded-lg mb-3">
+                                                    <p className="text-sm text-gray-400 mb-2">{selectedPackage.description}</p>
+                                                    <ul className="text-xs text-gray-500 space-y-1">
+                                                        {selectedPackage.features.map((f, i) => (
+                                                            <li key={i} className="flex items-center gap-1">
+                                                                <IconCheck className="w-3 h-3 text-green-400" />
+                                                                {f}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                                                <span className="text-gray-400 text-sm">Số lượng:</span>
+                                                <div className="flex items-center gap-3">
+                                                    <button type="button" onClick={decrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white"><IconMinus size={16} /></button>
+                                                    <span className="text-white font-bold w-6 text-center">{orderForm.quantity}</span>
+                                                    <button type="button" onClick={incrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white"><IconPlus size={16} /></button>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-center border-t border-white/10 pt-3 mt-3">
                                                 <span className="text-white font-bold">Tổng tiền:</span>
-                                                <span className="text-xl font-bold text-green-400">
-                                                    {(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ
-                                                </span>
+                                                <span className="text-xl font-bold text-green-400">{getTotalPrice().toLocaleString('vi-VN')}đ</span>
                                             </div>
                                         </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                                value={orderForm.name} onChange={handleOrderChange} name="name" />
-                                            <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                                value={orderForm.phone} onChange={handleOrderChange} name="phone" />
-                                        </div>
-                                        <input required type="email" placeholder="Email (Để nhận Key/Tài khoản)" className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                            value={orderForm.email} onChange={handleOrderChange} name="email" />
                                         
-                                        <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 transition-opacity">
-                                            Tiếp tục
-                                        </button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={orderForm.name} onChange={handleOrderChange} name="name" />
+                                            <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={orderForm.phone} onChange={handleOrderChange} name="phone" maxLength={10} />
+                                        </div>
+                                        <input required type="email" placeholder="Email (Để nhận tài liệu)" className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={orderForm.email} onChange={handleOrderChange} name="email" />
+                                        <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 transition-opacity">Tiếp tục</button>
                                     </form>
                                 ) : orderStep === 1.5 ? (
                                     <div className="space-y-6">
                                         <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-3">
                                             <h3 className="text-lg font-bold text-white border-b border-white/10 pb-2 mb-2">Vui lòng kiểm tra lại</h3>
                                             <p className="flex justify-between"><span className="text-gray-400">Sản phẩm:</span> <span className="font-medium text-white">{selectedProduct?.title}</span></p>
-                                            <p className="flex justify-between"><span className="text-gray-400">Đơn giá:</span> <span className="text-white">{selectedProduct?.price}</span></p>
+                                            {selectedPackage && (
+                                                <p className="flex justify-between"><span className="text-gray-400">Gói:</span> <span className="text-cyan-400 font-medium">{selectedPackage.name}</span></p>
+                                            )}
+                                            <p className="flex justify-between"><span className="text-gray-400">Đơn giá:</span> <span className="text-white">{selectedPackage ? selectedPackage.priceDisplay : selectedProduct?.price}</span></p>
                                             <p className="flex justify-between"><span className="text-gray-400">Số lượng:</span> <span className="font-bold text-white">{orderForm.quantity}</span></p>
-                                            <p className="flex justify-between border-t border-white/10 pt-2"><span className="text-gray-400">Tổng tiền:</span> <span className="font-bold text-green-400 text-lg">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
-                                            
+                                            <p className="flex justify-between border-t border-white/10 pt-2"><span className="text-gray-400">Tổng tiền:</span> <span className="font-bold text-green-400 text-lg">{getTotalPrice().toLocaleString('vi-VN')}đ</span></p>
                                             <div className="border-t border-white/10 pt-2 mt-2">
                                                 <p className="flex justify-between"><span className="text-gray-400">Họ tên:</span> <span className="text-white">{orderForm.name}</span></p>
                                                 <p className="flex justify-between"><span className="text-gray-400">SĐT:</span> <span className="text-white">{orderForm.phone}</span></p>
@@ -1180,54 +1533,28 @@
                                 ) : orderStep === 2 ? (
                                     <div className="text-center space-y-6">
                                         <div className="bg-white p-4 rounded-3xl w-48 h-48 mx-auto shadow-lg shadow-white/10">
-                                            <img 
-                                                src={`${BANK_INFO.qrLink}?amount=${selectedProduct?.priceVal * orderForm.quantity}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} 
-                                                alt="QR Thanh Toan" 
-                                                className="w-full h-full object-contain" 
-                                            />
+                                            <img src={`${BANK_INFO.qrLink}?amount=${getTotalPrice()}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} alt="QR Thanh Toan" className="w-full h-full object-contain" />
                                         </div>
                                         <div className="bg-white/5 p-4 rounded-2xl text-left space-y-2 text-sm border border-white/10">
                                             <p className="flex justify-between"><span>Ngân hàng:</span> <span className="font-bold text-white">{BANK_INFO.bankId}</span></p>
-                                            <p className="flex justify-between items-center">
-                                                <span>Số tài khoản:</span> 
-                                                <span className="font-bold text-white flex items-center gap-2">
-                                                    {BANK_INFO.accountNum} 
-                                                    <IconCopy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/>
-                                                </span>
-                                            </p>
+                                            <p className="flex justify-between items-center"><span>Số tài khoản:</span> <span className="font-bold text-white flex items-center gap-2">{BANK_INFO.accountNum} <IconCopy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/></span></p>
                                             <p className="flex justify-between"><span>Chủ tài khoản:</span> <span className="font-bold text-white">{BANK_INFO.accountName}</span></p>
-                                            <p className="flex justify-between items-center text-yellow-400 border-t border-white/10 pt-2 mt-2">
-                                                <span>Nội dung CK:</span> 
-                                                <span className="font-bold flex items-center gap-2">
-                                                    {generatedOrderId} 
-                                                    <IconCopy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/>
-                                                </span>
-                                            </p>
-                                            <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
+                                            <p className="flex justify-between items-center text-yellow-400 border-t border-white/10 pt-2 mt-2"><span>Nội dung CK:</span> <span className="font-bold flex items-center gap-2">{generatedOrderId} <IconCopy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/></span></p>
+                                            <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{getTotalPrice().toLocaleString('vi-VN')}đ</span></p>
                                         </div>
-                                        <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse">
-                                            <IconLoader className="animate-spin" size={16}/> Đang chờ thanh toán...
-                                        </div>
-                                        <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">
-                                            Quay lại
-                                        </button>
+                                        <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse"><IconLoader className="animate-spin" size={16}/> Đang chờ thanh toán...</div>
+                                        <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">Quay lại</button>
                                     </div>
                                 ) : (
                                     <div className="text-center py-10 animate-fade-in">
-                                        <div className="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <IconCheckCircle size={40} />
-                                        </div>
+                                        <div className="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6"><IconCheckCircle size={40} /></div>
                                         <h3 className="text-2xl font-bold text-white mb-4">Thanh Toán Thành Công!</h3>
                                         <div className="bg-green-900/30 border border-green-500/30 p-4 rounded-2xl mb-6">
-                                            <p className="text-sm text-gray-300 mb-2">Mã kích hoạt / Tài khoản của bạn:</p>
-                                            <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">
-                                                {paidKey}
-                                            </div>
+                                            <p className="text-sm text-gray-300 mb-2">Link tài liệu / Tài khoản của bạn:</p>
+                                            <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">{paidKey}</div>
                                         </div>
                                         <p className="text-gray-400 text-sm mb-6">Vui lòng lưu lại thông tin này.</p>
-                                        <button onClick={() => setSelectedProduct(null)} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white">
-                                            Đóng
-                                        </button>
+                                        <button onClick={() => { setSelectedProduct(null); setSelectedPackage(null); }} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white">Đóng</button>
                                     </div>
                                 )}
                             </GlassCard>
@@ -1241,8 +1568,7 @@
                             <form onSubmit={handleSearchOrder} className="flex gap-2 mb-6">
                                 <input required type="email" placeholder="Nhập Email mua hàng..." 
                                     className="flex-1 bg-black/40 border border-gray-700 rounded-2xl px-4 py-2 outline-none focus:border-cyan-500 text-white"
-                                    value={searchEmail} onChange={e => setSearchEmail(e.target.value)}
-                                />
+                                    value={searchEmail} onChange={e => setSearchEmail(e.target.value)} />
                                 <button disabled={isSearching} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-full flex items-center justify-center">
                                     {isSearching ? <IconLoader className="animate-spin" /> : <IconSearch />}
                                 </button>
@@ -1262,9 +1588,7 @@
                                                 {order.delivery || "Đang chờ cập nhật..."}
                                             </div>
                                         </div>
-                                    )) : (
-                                        <div className="text-gray-400">Không tìm thấy đơn hàng nào.</div>
-                                    )}
+                                    )) : (<div className="text-gray-400">Không tìm thấy đơn hàng nào.</div>)}
                                 </div>
                             )}
                         </GlassCard>
@@ -1291,45 +1615,31 @@
                                 <h3 className="text-2xl font-bold text-white mb-6 text-center">Gửi Đánh Giá</h3>
                                 <form onSubmit={handleFbSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                            value={fbForm.name} onChange={handleInputChange} name="name" />
-                                        <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                            value={fbForm.email} onChange={handleInputChange} name="email" />
+                                        <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={fbForm.name} onChange={handleInputChange} name="name" />
+                                        <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={fbForm.email} onChange={handleInputChange} name="email" />
                                     </div>
-                                    
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-300 mb-2">Đánh giá</label>
                                             <div className="flex gap-2">
                                                 {[1,2,3,4,5].map(s => (
-                                                    <IconStar key={s} onClick={() => setFbForm({...fbForm, rating: s})} 
-                                                        className={`cursor-pointer ${s <= fbForm.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'}`} />
+                                                    <IconStar key={s} onClick={() => setFbForm({...fbForm, rating: s})} className={`cursor-pointer ${s <= fbForm.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'}`} />
                                                 ))}
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-300 mb-2">Loại đánh giá</label>
                                             <div className="flex gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
-                                                {['Mua khóa học', 'Mua App'].map((type) => (
-                                                    <button
-                                                        key={type}
-                                                        type="button"
-                                                        onClick={() => setFbForm({...fbForm, type })}
-                                                        className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                                                            fbForm.type === type 
-                                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' 
-                                                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                                        }`}
-                                                    >
+                                                {['Mua đề thi', 'Mua App'].map((type) => (
+                                                    <button key={type} type="button" onClick={() => setFbForm({...fbForm, type })}
+                                                        className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${fbForm.type === type ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
                                                         {type}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                     </div>
-
-                                    <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
-                                        value={fbForm.message} onChange={handleInputChange} name="message" />
+                                    <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={fbForm.message} onChange={handleInputChange} name="message" />
                                     <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90">
                                         {isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
                                     </button>
@@ -1352,12 +1662,6 @@
                             <p className="text-gray-500 text-sm">© 2024 AstroMind. All rights reserved.</p>
                         </div>
                     </section>
-
-                    <style>{`
-                        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-                        .animate-marquee { animation: marquee 40s linear infinite; }
-                        .animate-marquee:hover { animation-play-state: paused; }
-                    `}</style>
                 </div>
             );
         }
