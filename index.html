@@ -8,17 +8,19 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- React & ReactDOM (UMD - Chạy trực tiếp trên trình duyệt) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     
-    <!-- Babel để dịch code React -->
+    <!-- Babel để dịch JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Lucide Icons (Dạng UMD để dùng trong HTML thường) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        body { font-family: 'Outfit', sans-serif; }
+        
         /* Custom Animations */
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .animate-marquee { animation: marquee 40s linear infinite; }
@@ -35,28 +37,63 @@
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-down { animation: fade-in-down 0.5s ease-out; }
-
-        @keyframes pulse-glow {
-           0%, 100% { opacity: 0.5; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-           50% { opacity: 1; box-shadow: 0 0 20px rgba(6, 182, 212, 0.8); }
+        
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+        .animate-fade-in { animation: fade-in 0.5s ease-out; }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
-<body class="bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
+<body class="bg-[#030712] text-gray-100 selection:bg-cyan-500 selection:text-white overflow-x-hidden">
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
-        import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
-        import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
-        // Import các icon từ thư viện lucide-react qua CDN
-        import { 
-            Star, Send, BookOpen, User, Monitor, MessageCircle, CheckCircle, Menu, X, 
-            ShoppingCart, Globe, Phone, Loader, Palette, Cloud, Bot, HelpCircle, 
-            ExternalLink, Sparkles, Zap, Award, Play, ArrowRight, Gift, Shield, 
-            Clock, Users, Heart, Rocket, Crown, Diamond, Search, Copy, ChevronRight, 
-            AlertCircle, Plus, Minus
-        } from 'https://esm.sh/lucide-react@0.263.1';
+    <script type="text/babel">
+        // Lấy các hook từ React global
+        const { useState, useEffect, useRef } = React;
+
+        // --- ĐỊNH NGHĨA ICON SVG TRỰC TIẾP (ĐẦY ĐỦ) ---
+        const IconStar = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+        const IconCheck = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+        const IconCheckCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>;
+        const IconMenu = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
+        const IconX = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>;
+        const IconSparkles = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></svg>;
+        const IconRocket = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>;
+        const IconCloud = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19c0-1.7-1.3-3-3-3h-11a4 4 0 1 1 0-8c0 0 .1 0 .1 0a6 6 0 0 1 11.2 0 4 4 0 0 1 2.7 7.9"/></svg>;
+        const IconBot = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>;
+        const IconPalette = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>;
+        const IconHelpCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>;
+        const IconMonitor = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>;
+        const IconBookOpen = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+        const IconUsers = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        const IconAward = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+        const IconClock = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const IconShield = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+        const IconZap = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+        const IconGift = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>;
+        const IconHeart = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+        const IconPlay = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const IconArrowRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
+        const IconExternalLink = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>;
+        const IconPhone = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>;
+        const IconShoppingCart = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>;
+        const IconLoader = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
+        const IconSearch = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
+        const IconCopy = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>;
+        const IconChevronRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
+        const IconPlus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
+        const IconMinus = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>;
+        const IconMessageCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>;
+        const IconAlertCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>;
+        const IconSend = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+        const IconGlobe = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>;
+        const IconCrown = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>;
+        const IconDiamond = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/></svg>;
 
         // --- CẤU HÌNH ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf_nITfjuriTEFhUhqUI73jNNNrR5KhvkLIWokRKi_6dTI7gC8ASN8wkb11sNvFOYe/exec";
@@ -131,7 +168,7 @@
                 price: "5.000đ", 
                 priceVal: 5000,   
                 platform: "Google One",
-                icon: <Cloud className="w-8 h-8" />,
+                icon: <IconCloud className="w-8 h-8" />,
                 color: "from-blue-500 to-cyan-400",
                 features: ["15TB Storage", "Bảo hành vĩnh viễn"]
             },
@@ -142,7 +179,7 @@
                 price: "490.000đ",
                 priceVal: 490000,
                 platform: "OpenAI",
-                icon: <Bot className="w-8 h-8" />,
+                icon: <IconBot className="w-8 h-8" />,
                 color: "from-emerald-500 to-green-400",
                 features: ["GPT-4 Turbo", "DALL-E 3"]
             },
@@ -153,7 +190,7 @@
                 price: "150.000đ",
                 priceVal: 150000,
                 platform: "Canva",
-                icon: <Palette className="w-8 h-8" />,
+                icon: <IconPalette className="w-8 h-8" />,
                 color: "from-purple-500 to-pink-400",
                 features: ["Pro Assets", "Magic Resize"]
             },
@@ -164,7 +201,7 @@
                 price: "Liên hệ",
                 priceVal: 0,
                 platform: "Support",
-                icon: <HelpCircle className="w-8 h-8" />,
+                icon: <IconHelpCircle className="w-8 h-8" />,
                 color: "from-amber-500 to-orange-400",
                 isContact: true,
                 features: ["Tư vấn miễn phí", "Hỗ trợ 24/7"]
@@ -172,269 +209,254 @@
         ];
 
         const STATS = [
-            { icon: <Users />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
-            { icon: <BookOpen />, value: "50+", label: "Khóa học", color: "from-purple-400 to-pink-500" },
-            { icon: <Award />, value: "99%", label: "Hài lòng", color: "from-amber-400 to-orange-500" },
-            { icon: <Clock />, value: "24/7", label: "Hỗ trợ", color: "from-emerald-400 to-teal-500" }
+            { icon: <IconUsers />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
+            { icon: <IconBookOpen />, value: "50+", label: "Khóa học", color: "from-purple-400 to-pink-500" },
+            { icon: <IconAward />, value: "99%", label: "Hài lòng", color: "from-amber-400 to-orange-500" },
+            { icon: <IconClock />, value: "24/7", label: "Hỗ trợ", color: "from-emerald-400 to-teal-500" }
         ];
 
         const FEATURES = [
-            { icon: <Shield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
-            { icon: <Zap />, title: "Kích hoạt tức thì", description: "Nhận tài khoản ngay sau khi thanh toán" },
-            { icon: <Gift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
-            { icon: <Heart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7 giải đáp mọi thắc mắc" }
+            { icon: <IconShield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
+            { icon: <IconZap />, title: "Kích hoạt tức thì", description: "Nhận tài khoản ngay sau khi thanh toán" },
+            { icon: <IconGift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
+            { icon: <IconHeart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7 giải đáp mọi thắc mắc" }
         ];
 
         const SOCIAL_LINKS = [
-            { name: "Zalo", url: "#", color: "from-blue-400 to-blue-600", icon: <MessageCircle /> },
+            { name: "Zalo", url: "#", color: "from-blue-400 to-blue-600", icon: <IconMessageCircle /> },
             { name: "Facebook", url: "#", color: "from-blue-600 to-blue-800", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
             { name: "X (Twitter)", url: "#", color: "from-gray-700 to-black", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
-            { name: "Telegram", url: "#", color: "from-cyan-400 to-blue-500", icon: <Send className="w-6 h-6" /> }
+            { name: "Telegram", url: "#", color: "from-cyan-400 to-blue-500", icon: <IconSend className="w-6 h-6" /> }
         ];
 
-        // --- COMPONENTS ---
+        // --- COMPONENTS & LOGIC ---
+        
         const ParticleField = () => {
-            const canvasRef = useRef(null);
-            useEffect(() => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-                const particles = [];
-                const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
-                for (let i = 0; i < 100; i++) {
-                    particles.push({
-                        x: Math.random() * canvas.width,
-                        y: Math.random() * canvas.height,
-                        size: Math.random() * 2 + 0.5,
-                        speedX: (Math.random() - 0.5) * 0.5,
-                        speedY: (Math.random() - 0.5) * 0.5,
-                        opacity: Math.random() * 0.5 + 0.2,
-                        color: colors[Math.floor(Math.random() * colors.length)]
-                    });
-                }
-                let animationId;
-                const animate = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    particles.forEach((particle) => {
-                        particle.x += particle.speedX;
-                        particle.y += particle.speedY;
-                        if (particle.x < 0) particle.x = canvas.width;
-                        if (particle.x > canvas.width) particle.x = 0;
-                        if (particle.y < 0) particle.y = canvas.height;
-                        if (particle.y > canvas.height) particle.y = 0;
-                        ctx.beginPath();
-                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                        ctx.fillStyle = particle.color;
-                        ctx.globalAlpha = particle.opacity;
-                        ctx.fill();
-                    });
-                    ctx.globalAlpha = 1;
-                    animationId = requestAnimationFrame(animate);
-                };
-                animate();
-                const handleResize = () => {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                };
-                window.addEventListener('resize', handleResize);
-                return () => {
-                    cancelAnimationFrame(animationId);
-                    window.removeEventListener('resize', handleResize);
-                };
-            }, []);
-            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
-        };
+             const canvasRef = useRef(null);
+             useEffect(() => {
+                 const canvas = canvasRef.current;
+                 if (!canvas) return;
+                 const ctx = canvas.getContext('2d');
+                 canvas.width = window.innerWidth;
+                 canvas.height = window.innerHeight;
+                 const particles = [];
+                 const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
+                 for (let i = 0; i < 100; i++) {
+                     particles.push({
+                         x: Math.random() * canvas.width,
+                         y: Math.random() * canvas.height,
+                         size: Math.random() * 2 + 0.5,
+                         speedX: (Math.random() - 0.5) * 0.5,
+                         speedY: (Math.random() - 0.5) * 0.5,
+                         opacity: Math.random() * 0.5 + 0.2,
+                         color: colors[Math.floor(Math.random() * colors.length)]
+                     });
+                 }
+                 let animationId;
+                 const animate = () => {
+                     ctx.clearRect(0, 0, canvas.width, canvas.height);
+                     particles.forEach((particle) => {
+                         particle.x += particle.speedX;
+                         particle.y += particle.speedY;
+                         if (particle.x < 0) particle.x = canvas.width;
+                         if (particle.x > canvas.width) particle.x = 0;
+                         if (particle.y < 0) particle.y = canvas.height;
+                         if (particle.y > canvas.height) particle.y = 0;
+                         ctx.beginPath();
+                         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                         ctx.fillStyle = particle.color;
+                         ctx.globalAlpha = particle.opacity;
+                         ctx.fill();
+                     });
+                     ctx.globalAlpha = 1;
+                     animationId = requestAnimationFrame(animate);
+                 };
+                 animate();
+                 const handleResize = () => {
+                     canvas.width = window.innerWidth;
+                     canvas.height = window.innerHeight;
+                 };
+                 window.addEventListener('resize', handleResize);
+                 return () => {
+                     cancelAnimationFrame(animationId);
+                     window.removeEventListener('resize', handleResize);
+                 };
+             }, []);
+             return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+         };
 
-        const RevealOnScroll = ({ children, delay = 0 }) => {
-            const [isVisible, setIsVisible] = useState(false);
-            const ref = useRef(null);
-            useEffect(() => {
-                const observer = new IntersectionObserver(([entry]) => {
-                    if (entry.isIntersecting) setIsVisible(true);
-                }, { threshold: 0.1 });
-                if (ref.current) observer.observe(ref.current);
-                return () => observer.disconnect();
-            }, []);
-            return (
-                <div ref={ref} className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${delay}ms` }}>
-                    {children}
-                </div>
-            );
-        };
+         const RevealOnScroll = ({ children, delay = 0 }) => {
+             const [isVisible, setIsVisible] = useState(false);
+             const ref = useRef(null);
+             useEffect(() => {
+                 const observer = new IntersectionObserver(([entry]) => {
+                     if (entry.isIntersecting) setIsVisible(true);
+                 }, { threshold: 0.1 });
+                 if (ref.current) observer.observe(ref.current);
+                 return () => observer.disconnect();
+             }, []);
+             return (
+                 <div ref={ref} className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${delay}ms` }}>
+                     {children}
+                 </div>
+             );
+         };
 
-        const GlassCard = ({ children, className = "", hover = true }) => (
-            <div className={`relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
-                {children}
-            </div>
-        );
+         // Updated Style: More rounded
+         const GlassCard = ({ children, className = "", hover = true }) => (
+             <div className={`relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
+                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+                 {children}
+             </div>
+         );
 
-        const MagneticButton = ({ children, className = "", onClick }) => {
-            const buttonRef = useRef(null);
-            const [position, setPosition] = useState({ x: 0, y: 0 });
-            const handleMouseMove = (e) => {
-                if (!buttonRef.current) return;
-                const rect = buttonRef.current.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                setPosition({ x: x * 0.2, y: y * 0.2 });
-            };
-            const handleMouseLeave = () => setPosition({ x: 0, y: 0 });
-            return (
-                <button
-                    ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
-                    className={`transform transition-transform duration-300 ${className}`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-                >
-                    {children}
-                </button>
-            );
-        };
+         const MagneticButton = ({ children, className = "", onClick }) => {
+             const buttonRef = useRef(null);
+             const [position, setPosition] = useState({ x: 0, y: 0 });
+             const handleMouseMove = (e) => {
+                 if (!buttonRef.current) return;
+                 const rect = buttonRef.current.getBoundingClientRect();
+                 const x = e.clientX - rect.left - rect.width / 2;
+                 const y = e.clientY - rect.top - rect.height / 2;
+                 setPosition({ x: x * 0.2, y: y * 0.2 });
+             };
+             const handleMouseLeave = () => setPosition({ x: 0, y: 0 });
+             return (
+                 <button
+                     ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
+                     className={`transform transition-transform duration-300 ${className} rounded-full`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+                 >
+                     {children}
+                 </button>
+             );
+         };
 
-        const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
-            const [count, setCount] = useState(0);
-            const ref = useRef(null);
-            const [isVisible, setIsVisible] = useState(false);
-            useEffect(() => {
-                const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); });
-                if (ref.current) observer.observe(ref.current);
-                return () => observer.disconnect();
-            }, []);
-            useEffect(() => {
-                if (!isVisible) return;
-                let startTime;
-                const animate = (currentTime) => {
-                    if (!startTime) startTime = currentTime;
-                    const progress = Math.min((currentTime - startTime) / duration, 1);
-                    setCount(Math.floor(progress * end));
-                    if (progress < 1) requestAnimationFrame(animate);
-                };
-                requestAnimationFrame(animate);
-            }, [isVisible, end, duration]);
-            return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-        };
+         const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
+             const [count, setCount] = useState(0);
+             const ref = useRef(null);
+             const [isVisible, setIsVisible] = useState(false);
+             useEffect(() => {
+                 const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); });
+                 if (ref.current) observer.observe(ref.current);
+                 return () => observer.disconnect();
+             }, []);
+             useEffect(() => {
+                 if (!isVisible) return;
+                 let startTime;
+                 const animate = (currentTime) => {
+                     if (!startTime) startTime = currentTime;
+                     const progress = Math.min((currentTime - startTime) / duration, 1);
+                     setCount(Math.floor(progress * end));
+                     if (progress < 1) requestAnimationFrame(animate);
+                 };
+                 requestAnimationFrame(animate);
+             }, [isVisible, end, duration]);
+             return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+         };
+         
+         const CourseCard = ({ course, index, onBuy }) => {
+             const [isHovered, setIsHovered] = useState(false);
+             const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
+             
+             return (
+                 <RevealOnScroll delay={index * 150}>
+                     <GlassCard className="group h-full flex flex-col">
+                         <div className="relative h-56 overflow-hidden rounded-t-[2.5rem]" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                             <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
+                             <img src={course.image} alt={course.title} className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 blur-sm' : 'scale-100'}`} />
+                             <div className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                                 <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30">
+                                     <IconPlay className="w-6 h-6 text-white fill-white ml-1" />
+                                 </div>
+                             </div>
+                             {/* Badges moved to bottom */}
+                             <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2">
+                                 {course.badge && (
+                                     <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
+                                         {course.badge}
+                                     </span>
+                                 )}
+                                 {course.tags.map(tag => (
+                                     <span key={tag} className="px-3 py-1 rounded-full text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
+                                         {tag}
+                                     </span>
+                                 ))}
+                             </div>
+                         </div>
+                         <div className="p-6 flex-1 flex flex-col">
+                             <div className="flex items-center justify-between mb-3">
+                                 <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><IconStar className="w-4 h-4 fill-current" />{course.rating}</div>
+                                 <span className="text-xs text-gray-400 bg-gray-800/50 px-3 py-1 rounded-full">{course.level}</span>
+                             </div>
+                             <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{course.title}</h3>
+                             <p className="text-gray-400 text-sm mb-4 flex-1">{course.description}</p>
+                             <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                                 <div>
+                                     <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{course.price}</span>
+                                 </div>
+                                 <div className="flex gap-2">
+                                     <a href={course.trialLink} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors border border-white/10" title="Học thử">
+                                         <IconExternalLink size={20} />
+                                     </a>
+                                     <button onClick={() => onBuy(course)} className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium flex items-center gap-2 group/btn shadow-lg shadow-cyan-500/20">
+                                         Mua ngay <IconArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
+                     </GlassCard>
+                 </RevealOnScroll>
+             );
+         };
 
-        const CourseCard = ({ course, index, onBuy }) => {
-            const [isHovered, setIsHovered] = useState(false);
-            const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
-            
-            return (
-                <RevealOnScroll delay={index * 150}>
-                    <GlassCard className="group h-full flex flex-col">
-                        <div className="relative h-56 overflow-hidden" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
-                            <img src={course.image} alt={course.title} className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 blur-sm' : 'scale-100'}`} />
-                            <div className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                                <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30">
-                                    <Play className="w-6 h-6 text-white fill-white ml-1" />
-                                </div>
-                            </div>
-                            <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2">
-                                {course.badge && (
-                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
-                                        {course.badge}
-                                    </span>
-                                )}
-                                {course.tags.map(tag => (
-                                    <span key={tag} className="px-2 py-1 rounded-lg text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><Star className="w-4 h-4 fill-current" />{course.rating}</div>
-                                <span className="text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded-full">{course.level}</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{course.title}</h3>
-                            <p className="text-gray-400 text-sm mb-4 flex-1">{course.description}</p>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                                <div>
-                                    <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{course.price}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <a href={course.trialLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors border border-white/10" title="Học thử">
-                                        <ExternalLink size={20} />
-                                    </a>
-                                    <button onClick={() => onBuy(course)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium flex items-center gap-1 group/btn">
-                                        Mua ngay <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </GlassCard>
-                </RevealOnScroll>
-            );
-        };
+         const AccountCard = ({ account, index, onBuy }) => (
+             <RevealOnScroll delay={index * 100}>
+                 <GlassCard className="group h-full flex flex-col p-6">
+                     <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${account.color} flex items-center justify-center text-white mb-4 shadow-lg`}>
+                         {account.icon}
+                     </div>
+                     <h3 className="text-xl font-bold text-white mb-1">{account.title}</h3>
+                     <p className="text-xs font-medium mb-3 text-gray-400 uppercase">{account.platform}</p>
+                     <p className="text-gray-400 text-sm mb-4 flex-1">{account.description}</p>
+                     <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
+                         <span className={`text-xl font-bold ${account.isContact ? 'text-amber-400' : 'text-white'}`}>{account.price}</span>
+                         <button onClick={() => onBuy(account)} className={`px-5 py-2.5 rounded-full font-medium flex items-center gap-2 ${account.isContact ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20' : `bg-gradient-to-r ${account.color} hover:opacity-90 shadow-lg`} text-white shadow-md`}>
+                             {account.isContact ? <IconPhone size={16} /> : <IconShoppingCart size={16} />}
+                             {account.isContact ? 'Liên hệ' : 'Mua'}
+                         </button>
+                     </div>
+                 </GlassCard>
+             </RevealOnScroll>
+         );
 
-        const AccountCard = ({ account, index, onBuy }) => (
-            <RevealOnScroll delay={index * 100}>
-                <GlassCard className="group h-full flex flex-col p-6">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${account.color} flex items-center justify-center text-white mb-4 shadow-lg`}>
-                        {account.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-1">{account.title}</h3>
-                    <p className="text-xs font-medium mb-3 text-gray-400 uppercase">{account.platform}</p>
-                    <p className="text-gray-400 text-sm mb-4 flex-1">{account.description}</p>
-                    <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
-                        <span className={`text-xl font-bold ${account.isContact ? 'text-amber-400' : 'text-white'}`}>{account.price}</span>
-                        <button onClick={() => onBuy(account)} className={`px-4 py-2 rounded-xl font-medium flex items-center gap-2 ${account.isContact ? 'bg-amber-600 hover:bg-amber-500' : `bg-gradient-to-r ${account.color} hover:opacity-90`} text-white`}>
-                            {account.isContact ? <Phone size={16} /> : <ShoppingCart size={16} />}
-                            {account.isContact ? 'Liên hệ' : 'Mua'}
-                        </button>
-                    </div>
-                </GlassCard>
-            </RevealOnScroll>
-        );
+         const ReviewCard = ({ review }) => (
+             <GlassCard className="w-[320px] md:w-[380px] shrink-0 mx-3 p-6" hover={false}>
+                 <div className="flex justify-between items-start mb-4">
+                     <div className="flex gap-1 text-amber-400">
+                         {[...Array(5)].map((_, i) => <IconStar key={i} size={14} className={i < (review.rating || 5) ? "fill-current" : "text-gray-600"} />)}
+                     </div>
+                     <span className="text-[10px] uppercase font-bold px-3 py-1 rounded-full bg-cyan-900/30 text-cyan-400 border border-cyan-500/30">
+                         {review.type || "Thành viên"}
+                     </span>
+                 </div>
+                 <p className="text-gray-300 italic text-sm line-clamp-3 mb-4">"{review.content}"</p>
+                 <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">{review.name?.charAt(0)}</div>
+                     <div>
+                         <h4 className="text-white font-bold text-sm">{review.name}</h4>
+                         <p className="text-cyan-500 text-xs flex items-center gap-1"><IconCheckCircle size={12} className="fill-current" /> Đã xác thực</p>
+                     </div>
+                 </div>
+             </GlassCard>
+         );
 
-        const ReviewCard = ({ review }) => (
-            <GlassCard className="w-[320px] md:w-[380px] shrink-0 mx-3 p-6" hover={false}>
-                <div className="flex justify-between items-start mb-4">
-                    <div className="flex gap-1 text-amber-400">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < (review.rating || 5) ? "fill-current" : "text-gray-600"} />)}
-                    </div>
-                    <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-cyan-900/30 text-cyan-400 border border-cyan-500/30">
-                        {review.type || "Thành viên"}
-                    </span>
-                </div>
-                <p className="text-gray-300 italic text-sm line-clamp-3 mb-4">"{review.content}"</p>
-                <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">{review.name?.charAt(0)}</div>
-                    <div>
-                        <h4 className="text-white font-bold text-sm">{review.name}</h4>
-                        <p className="text-cyan-500 text-xs flex items-center gap-1"><CheckCircle size={10} className="fill-current" /> Đã xác thực</p>
-                    </div>
-                </div>
-            </GlassCard>
-        );
-
+        // --- MAIN APP ---
         function GalaxyShop() {
             const [isMenuOpen, setIsMenuOpen] = useState(false);
             const [scrolled, setScrolled] = useState(false);
-            
-            // Logic Hooks
             const [scrollProgress, setScrollProgress] = useState(0);
-
-            useEffect(() => {
-                const updateProgress = () => {
-                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-                    const scrolled = (window.scrollY / scrollHeight) * 100;
-                    setScrollProgress(scrolled);
-                };
-                window.addEventListener('scroll', updateProgress);
-                return () => window.removeEventListener('scroll', updateProgress);
-            }, []);
-
-            useEffect(() => {
-                const handleScroll = () => setScrolled(window.scrollY > 50);
-                window.addEventListener('scroll', handleScroll);
-                fetchReviews();
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
-            // Logic Đặt hàng
+            
+            // Logic Đặt hàng / Tra cứu
             const [selectedProduct, setSelectedProduct] = useState(null);
             const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', quantity: 1 });
             const [orderStep, setOrderStep] = useState(1);
@@ -449,6 +471,18 @@
             const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
             const [isSubmitting, setIsSubmitting] = useState(false);
             const [paidKey, setPaidKey] = useState(null); 
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setScrolled(window.scrollY > 50);
+                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const progress = (window.scrollY / scrollHeight) * 100;
+                    setScrollProgress(progress);
+                };
+                window.addEventListener('scroll', handleScroll);
+                fetchReviews();
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
 
             useEffect(() => {
                 let interval;
@@ -622,7 +656,7 @@
                         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
                             <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
                                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-                                    <Sparkles size={16} className="text-white" />
+                                    <IconSparkles size={16} className="text-white" />
                                 </div>
                                 <span className="font-bold text-xl tracking-tight">AstroMind</span>
                             </div>
@@ -640,7 +674,7 @@
                             </div>
 
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white">
-                                {isMenuOpen ? <X /> : <Menu />}
+                                {isMenuOpen ? <IconX /> : <IconMenu />}
                             </button>
                         </div>
                         
@@ -665,7 +699,7 @@
                     <section id="home" className="relative pt-32 pb-20 px-4 text-center z-10 min-h-screen flex items-center justify-center">
                         <RevealOnScroll>
                             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-8">
-                                <Sparkles className="w-4 h-4 text-cyan-400" />
+                                <IconSparkles className="w-4 h-4 text-cyan-400" />
                                 <span className="text-sm text-cyan-400 font-medium">Nền tảng học tập #1 Việt Nam</span>
                             </div>
                             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight">
@@ -677,12 +711,12 @@
                             </p>
                             <div className="flex flex-col sm:flex-row justify-center gap-4">
                                 <MagneticButton onClick={() => document.getElementById('khoa-hoc').scrollIntoView({ behavior: 'smooth' })} 
-                                    className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
-                                    <BookOpen size={22} /> Khám phá khóa học <ChevronRight size={20} />
+                                    className="px-8 py-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+                                    <IconBookOpen size={22} /> Khám phá khóa học <IconChevronRight size={20} />
                                 </MagneticButton>
                                 <MagneticButton onClick={() => document.getElementById('ung-dung').scrollIntoView({ behavior: 'smooth' })} 
-                                    className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg flex items-center justify-center gap-2">
-                                    <Monitor size={22} /> Xem Ứng Dụng
+                                    className="px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg flex items-center justify-center gap-2">
+                                    <IconMonitor size={22} /> Xem Ứng Dụng
                                 </MagneticButton>
                             </div>
                         </RevealOnScroll>
@@ -764,19 +798,19 @@
                                     <h2 className="text-2xl font-bold text-cyan-400">
                                         {orderStep === 1 ? 'Thông Tin Đặt Hàng' : orderStep === 1.5 ? 'Xác Nhận Thông Tin' : orderStep === 2 ? 'Thanh Toán' : 'Thành Công'}
                                     </h2>
-                                    <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-white"><X /></button>
+                                    <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-white"><IconX /></button>
                                 </div>
                                 
                                 {orderError && (
-                                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-300 text-sm animate-fade-in-down">
-                                        <AlertCircle size={16} />
+                                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-2xl flex items-center gap-2 text-red-300 text-sm animate-fade-in-down">
+                                        <IconAlertCircle size={16} />
                                         {orderError}
                                     </div>
                                 )}
 
                                 {orderStep === 1 ? (
                                     <form onSubmit={handleOrderSubmit} className="space-y-4">
-                                        <div className="bg-white/5 p-4 rounded-xl mb-4 flex flex-col gap-3 border border-white/10">
+                                        <div className="bg-white/5 p-4 rounded-2xl mb-4 flex flex-col gap-3 border border-white/10">
                                             <div className="flex justify-between items-center">
                                                 <span className="font-medium text-white">{selectedProduct?.title}</span>
                                                 <span className="text-cyan-400 font-bold">{selectedProduct?.price}</span>
@@ -786,12 +820,12 @@
                                             <div className="flex items-center justify-between border-t border-white/10 pt-3">
                                                 <span className="text-gray-400 text-sm">Số lượng:</span>
                                                 <div className="flex items-center gap-3">
-                                                    <button type="button" onClick={decrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
-                                                        <Minus size={16} />
+                                                    <button type="button" onClick={decrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white">
+                                                        <IconMinus size={16} />
                                                     </button>
                                                     <span className="text-white font-bold w-6 text-center">{orderForm.quantity}</span>
-                                                    <button type="button" onClick={incrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
-                                                        <Plus size={16} />
+                                                    <button type="button" onClick={incrementQuantity} className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-white">
+                                                        <IconPlus size={16} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -805,21 +839,21 @@
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                            <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                                 value={orderForm.name} onChange={handleOrderChange} name="name" />
-                                            <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                            <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                                 value={orderForm.phone} onChange={handleOrderChange} name="phone" />
                                         </div>
-                                        <input required type="email" placeholder="Email (Để nhận Key/Tài khoản)" className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                        <input required type="email" placeholder="Email (Để nhận Key/Tài khoản)" className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                             value={orderForm.email} onChange={handleOrderChange} name="email" />
                                         
-                                        <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                                        <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 transition-opacity">
                                             Tiếp tục
                                         </button>
                                     </form>
                                 ) : orderStep === 1.5 ? (
                                     <div className="space-y-6">
-                                        <div className="bg-white/5 p-6 rounded-xl border border-white/10 space-y-3">
+                                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-3">
                                             <h3 className="text-lg font-bold text-white border-b border-white/10 pb-2 mb-2">Vui lòng kiểm tra lại</h3>
                                             <p className="flex justify-between"><span className="text-gray-400">Sản phẩm:</span> <span className="font-medium text-white">{selectedProduct?.title}</span></p>
                                             <p className="flex justify-between"><span className="text-gray-400">Đơn giá:</span> <span className="text-white">{selectedProduct?.price}</span></p>
@@ -833,28 +867,28 @@
                                             </div>
                                         </div>
                                         <div className="flex gap-4">
-                                            <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-xl font-bold hover:bg-gray-600 text-white">Quay lại</button>
-                                            <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 text-white">
+                                            <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-full font-bold hover:bg-gray-600 text-white">Quay lại</button>
+                                            <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 text-white">
                                                 {isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}
                                             </button>
                                         </div>
                                     </div>
                                 ) : orderStep === 2 ? (
                                     <div className="text-center space-y-6">
-                                        <div className="bg-white p-4 rounded-xl w-48 h-48 mx-auto">
+                                        <div className="bg-white p-4 rounded-3xl w-48 h-48 mx-auto shadow-lg shadow-white/10">
                                             <img 
                                                 src={`${BANK_INFO.qrLink}?amount=${selectedProduct?.priceVal * orderForm.quantity}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} 
                                                 alt="QR Thanh Toan" 
                                                 className="w-full h-full object-contain" 
                                             />
                                         </div>
-                                        <div className="bg-white/5 p-4 rounded-xl text-left space-y-2 text-sm border border-white/10">
+                                        <div className="bg-white/5 p-4 rounded-2xl text-left space-y-2 text-sm border border-white/10">
                                             <p className="flex justify-between"><span>Ngân hàng:</span> <span className="font-bold text-white">{BANK_INFO.bankId}</span></p>
                                             <p className="flex justify-between items-center">
                                                 <span>Số tài khoản:</span> 
                                                 <span className="font-bold text-white flex items-center gap-2">
                                                     {BANK_INFO.accountNum} 
-                                                    <Copy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/>
+                                                    <IconCopy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/>
                                                 </span>
                                             </p>
                                             <p className="flex justify-between"><span>Chủ tài khoản:</span> <span className="font-bold text-white">{BANK_INFO.accountName}</span></p>
@@ -862,13 +896,13 @@
                                                 <span>Nội dung CK:</span> 
                                                 <span className="font-bold flex items-center gap-2">
                                                     {generatedOrderId} 
-                                                    <Copy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/>
+                                                    <IconCopy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/>
                                                 </span>
                                             </p>
                                             <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
                                         </div>
                                         <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse">
-                                            <Loader className="animate-spin" size={16}/> Đang chờ thanh toán...
+                                            <IconLoader className="animate-spin" size={16}/> Đang chờ thanh toán...
                                         </div>
                                         <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">
                                             Quay lại
@@ -877,17 +911,17 @@
                                 ) : (
                                     <div className="text-center py-10 animate-fade-in">
                                         <div className="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <CheckCircle size={40} />
+                                            <IconCheckCircle size={40} />
                                         </div>
                                         <h3 className="text-2xl font-bold text-white mb-4">Thanh Toán Thành Công!</h3>
-                                        <div className="bg-green-900/30 border border-green-500/30 p-4 rounded-xl mb-6">
+                                        <div className="bg-green-900/30 border border-green-500/30 p-4 rounded-2xl mb-6">
                                             <p className="text-sm text-gray-300 mb-2">Mã kích hoạt / Tài khoản của bạn:</p>
                                             <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">
                                                 {paidKey}
                                             </div>
                                         </div>
                                         <p className="text-gray-400 text-sm mb-6">Vui lòng lưu lại thông tin này.</p>
-                                        <button onClick={() => setSelectedProduct(null)} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white">
+                                        <button onClick={() => setSelectedProduct(null)} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white">
                                             Đóng
                                         </button>
                                     </div>
@@ -902,25 +936,25 @@
                         <GlassCard className="p-6">
                             <form onSubmit={handleSearchOrder} className="flex gap-2 mb-6">
                                 <input required type="email" placeholder="Nhập Email mua hàng..." 
-                                    className="flex-1 bg-black/40 border border-gray-700 rounded-xl px-4 py-2 outline-none focus:border-cyan-500 text-white"
+                                    className="flex-1 bg-black/40 border border-gray-700 rounded-2xl px-4 py-2 outline-none focus:border-cyan-500 text-white"
                                     value={searchEmail} onChange={e => setSearchEmail(e.target.value)}
                                 />
-                                <button disabled={isSearching} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-xl flex items-center justify-center">
-                                    {isSearching ? <Loader className="animate-spin" /> : <Search />}
+                                <button disabled={isSearching} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-full flex items-center justify-center">
+                                    {isSearching ? <IconLoader className="animate-spin" /> : <IconSearch />}
                                 </button>
                             </form>
 
                             {myOrders && (
                                 <div className="text-left space-y-3">
                                     {Array.isArray(myOrders) && myOrders.length > 0 ? myOrders.map((order, i) => (
-                                        <div key={i} className="bg-black/30 p-4 rounded-xl border border-gray-700">
+                                        <div key={i} className="bg-black/30 p-4 rounded-2xl border border-gray-700">
                                             <div className="flex justify-between mb-1">
                                                 <span className="font-bold text-white">{order.product}</span>
-                                                <span className={`text-xs px-2 py-0.5 rounded ${order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                                                     {order.status === 'Paid' ? 'Đã thanh toán' : order.status}
                                                 </span>
                                             </div>
-                                            <div className="text-sm text-gray-400 mt-2 p-2 bg-black/40 rounded border border-white/5 break-all font-mono whitespace-pre-line">
+                                            <div className="text-sm text-gray-400 mt-2 p-2 bg-black/40 rounded-xl border border-white/5 break-all font-mono whitespace-pre-line">
                                                 {order.delivery || "Đang chờ cập nhật..."}
                                             </div>
                                         </div>
@@ -953,9 +987,9 @@
                                 <h3 className="text-2xl font-bold text-white mb-6 text-center">Gửi Đánh Giá</h3>
                                 <form onSubmit={handleFbSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                        <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                             value={fbForm.name} onChange={handleInputChange} name="name" />
-                                        <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                        <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                             value={fbForm.email} onChange={handleInputChange} name="email" />
                                     </div>
                                     
@@ -964,7 +998,7 @@
                                             <label className="block text-sm font-medium text-gray-300 mb-2">Đánh giá</label>
                                             <div className="flex gap-2">
                                                 {[1,2,3,4,5].map(s => (
-                                                    <Star key={s} onClick={() => setFbForm({...fbForm, rating: s})} 
+                                                    <IconStar key={s} onClick={() => setFbForm({...fbForm, rating: s})} 
                                                         className={`cursor-pointer ${s <= fbForm.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'}`} />
                                                 ))}
                                             </div>
@@ -990,9 +1024,9 @@
                                         </div>
                                     </div>
 
-                                    <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                    <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white"
                                         value={fbForm.message} onChange={handleInputChange} name="message" />
-                                    <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90">
+                                    <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90">
                                         {isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
                                     </button>
                                 </form>
