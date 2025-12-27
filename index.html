@@ -1,1002 +1,1031 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Star, Send, BookOpen, User, Monitor, MessageCircle, CheckCircle, Menu, X, ShoppingCart, Globe, Phone, Loader, Palette, Cloud, Bot, HelpCircle, ExternalLink, Sparkles, Zap, Award, Play, ArrowRight, Gift, Shield, Clock, Users, Heart, Rocket, Crown, Diamond, Search, Copy, ChevronRight, AlertCircle, Plus, Minus } from 'lucide-react';
-
-// --- CẤU HÌNH ---
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf_nITfjuriTEFhUhqUI73jNNNrR5KhvkLIWokRKi_6dTI7gC8ASN8wkb11sNvFOYe/exec";
-const BANK_INFO = {
-  bankId: "MB",          
-  accountNum: "11166774411", 
-  accountName: "LE NGOC TUONG", 
-  qrLink: "https://img.vietqr.io/image/MB-11166774411-compact2.jpg" 
-};
-
-const DEFAULT_REVIEWS = [];
-
-const COURSES = [
-  {
-    id: 1,
-    title: "Triết Học Nhập Môn",
-    description: "Khám phá nền tảng tư duy nhân loại từ Plato đến Kant. Phù hợp cho người mới bắt đầu.",
-    price: "5.000đ", 
-    priceVal: 5000,   
-    originalPrice: "999.000đ",
-    image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600",
-    trialLink: "https://youtu.be/example1", 
-    tags: ["Triết học", "Tư duy"],
-    students: 1234,
-    rating: 4.9,
-    lessons: 24,
-    duration: "12 giờ",
-    level: "Cơ bản",
-    badge: "Bestseller",
-    type: "link" // Loại sản phẩm: link (dùng chung)
-  },
-  {
-    id: 2,
-    title: "Chủ Nghĩa Khắc Kỷ",
-    description: "Rèn luyện bản lĩnh và sự bình thản trước mọi biến cố của cuộc sống hiện đại.",
-    price: "350.000đ",
-    priceVal: 350000,
-    originalPrice: "700.000đ",
-    image: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?auto=format&fit=crop&q=80&w=600",
-    trialLink: "https://youtu.be/example2",
-    tags: ["Tâm lý", "Thực hành"],
-    students: 892,
-    rating: 4.8,
-    lessons: 18,
-    duration: "8 giờ",
-    level: "Trung bình",
-    badge: "Hot",
-    type: "link"
-  },
-  {
-    id: 3,
-    title: "Tư Duy Phản Biện",
-    description: "Nâng cao khả năng lập luận, phân tích vấn đề và đưa ra quyết định chính xác.",
-    price: "599.000đ",
-    priceVal: 599000,
-    originalPrice: "1.200.000đ",
-    image: "https://images.unsplash.com/photo-1555445054-d1863b935484?auto=format&fit=crop&q=80&w=600",
-    trialLink: "https://youtu.be/example3",
-    tags: ["Kỹ năng mềm", "Logic"],
-    students: 2156,
-    rating: 4.95,
-    lessons: 32,
-    duration: "16 giờ",
-    level: "Nâng cao",
-    badge: "Premium",
-    type: "link"
-  }
-];
-
-const ACCOUNTS = [
-  {
-    id: 'gg',
-    title: "Tài khoản Google",
-    description: "Dung lượng Drive không giới hạn, bảo hành trọn đời.",
-    price: "5.000đ", 
-    priceVal: 5000,   
-    platform: "Google One",
-    icon: <Cloud className="w-8 h-8" />,
-    color: "from-blue-500 to-cyan-400",
-    features: ["15TB Storage", "Bảo hành vĩnh viễn"],
-    type: "code" // Loại sản phẩm: code (mỗi người 1 cái riêng)
-  },
-  {
-    id: 'gpt',
-    title: "ChatGPT Plus",
-    description: "Sử dụng GPT-4, DALL-E 3, phân tích dữ liệu nâng cao.",
-    price: "490.000đ",
-    priceVal: 490000,
-    platform: "OpenAI",
-    icon: <Bot className="w-8 h-8" />,
-    color: "from-emerald-500 to-green-400",
-    features: ["GPT-4 Turbo", "DALL-E 3"],
-    type: "code"
-  },
-  {
-    id: 'canva',
-    title: "Canva Pro/Edu",
-    description: "Nâng cấp chính chủ, đầy đủ tính năng thiết kế Premium.",
-    price: "150.000đ",
-    priceVal: 150000,
-    platform: "Canva",
-    icon: <Palette className="w-8 h-8" />,
-    color: "from-purple-500 to-pink-400",
-    features: ["Pro Assets", "Magic Resize"],
-    type: "code"
-  },
-  {
-    id: 'contact',
-    title: "Yêu cầu App Khác",
-    description: "Liên hệ để được tư vấn phần mềm khác.",
-    price: "Liên hệ",
-    priceVal: 0,
-    platform: "Support",
-    icon: <HelpCircle className="w-8 h-8" />,
-    color: "from-amber-500 to-orange-400",
-    isContact: true,
-    features: ["Tư vấn miễn phí", "Hỗ trợ 24/7"]
-  }
-];
-
-const STATS = [
-  { icon: <Users />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
-  { icon: <BookOpen />, value: "50+", label: "Khóa học", color: "from-purple-400 to-pink-500" },
-  { icon: <Award />, value: "99%", label: "Hài lòng", color: "from-amber-400 to-orange-500" },
-  { icon: <Clock />, value: "24/7", label: "Hỗ trợ", color: "from-emerald-400 to-teal-500" }
-];
-
-const FEATURES = [
-  { icon: <Shield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
-  { icon: <Zap />, title: "Kích hoạt tức thì", description: "Nhận tài khoản ngay sau khi thanh toán" },
-  { icon: <Gift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
-  { icon: <Heart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7 giải đáp mọi thắc mắc" }
-];
-
-const SOCIAL_LINKS = [
-  { name: "Zalo", url: "#", color: "from-blue-400 to-blue-600", icon: <MessageCircle /> },
-  { name: "Facebook", url: "#", color: "from-blue-600 to-blue-800", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
-  { name: "X (Twitter)", url: "#", color: "from-gray-700 to-black", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
-  { name: "Telegram", url: "#", color: "from-cyan-400 to-blue-500", icon: <Send className="w-6 h-6" /> }
-];
-
-// --- HOOKS ---
-const useMousePosition = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  useEffect(() => {
-    const updateMousePosition = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
-    window.addEventListener('mousemove', updateMousePosition);
-    return () => window.removeEventListener('mousemove', updateMousePosition);
-  }, []);
-  return mousePosition;
-};
-
-const useScrollProgress = () => {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const updateProgress = () => {
-      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrolled = (window.scrollY / scrollHeight) * 100;
-      setProgress(scrolled);
-    };
-    window.addEventListener('scroll', updateProgress);
-    return () => window.removeEventListener('scroll', updateProgress);
-  }, []);
-  return progress;
-};
-
-// --- COMPONENTS ---
-const ParticleField = () => {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const particles = [];
-    const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
-    for (let i = 0; i < 100; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        size: Math.random() * 2 + 0.5,
-        speedX: (Math.random() - 0.5) * 0.5,
-        speedY: (Math.random() - 0.5) * 0.5,
-        opacity: Math.random() * 0.5 + 0.2,
-        color: colors[Math.floor(Math.random() * colors.length)]
-      });
-    }
-    let animationId;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach((particle) => {
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
-        if (particle.x < 0) particle.x = canvas.width;
-        if (particle.x > canvas.width) particle.x = 0;
-        if (particle.y < 0) particle.y = canvas.height;
-        if (particle.y > canvas.height) particle.y = 0;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.opacity;
-        ctx.fill();
-      });
-      ctx.globalAlpha = 1;
-      animationId = requestAnimationFrame(animate);
-    };
-    animate();
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-  return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
-};
-
-const RevealOnScroll = ({ children, delay = 0 }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setIsVisible(true);
-    }, { threshold: 0.1 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${delay}ms` }}>
-      {children}
-    </div>
-  );
-};
-
-// Updated "Glass Squid" Style
-const GlassCard = ({ children, className = "", hover = true }) => (
-  <div className={`relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
-    {children}
-  </div>
-);
-
-const MagneticButton = ({ children, className = "", onClick }) => {
-  const buttonRef = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const handleMouseMove = (e) => {
-    if (!buttonRef.current) return;
-    const rect = buttonRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    setPosition({ x: x * 0.2, y: y * 0.2 });
-  };
-  const handleMouseLeave = () => setPosition({ x: 0, y: 0 });
-  return (
-    <button
-      ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
-      className={`transform transition-transform duration-300 ${className}`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
-    >
-      {children}
-    </button>
-  );
-};
-
-const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!isVisible) return;
-    let startTime;
-    const animate = (currentTime) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [isVisible, end, duration]);
-  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
-};
-
-// Component thẻ khóa học - Updated badge position to bottom
-const CourseCard = ({ course, index, onBuy }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
-  
-  return (
-    <RevealOnScroll delay={index * 150}>
-      <GlassCard className="group h-full flex flex-col">
-        <div className="relative h-56 overflow-hidden" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
-          <img src={course.image} alt={course.title} className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 blur-sm' : 'scale-100'}`} />
-          
-          <div className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30">
-              <Play className="w-6 h-6 text-white fill-white ml-1" />
-            </div>
-          </div>
-
-          {/* Badges moved to bottom */}
-          <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2">
-             {course.badge && (
-              <span className={`px-2 py-1 rounded-lg text-xs font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
-                {course.badge}
-              </span>
-            )}
-            {course.tags.map(tag => (
-              <span key={tag} className="px-2 py-1 rounded-lg text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-        
-        <div className="p-6 flex-1 flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><Star className="w-4 h-4 fill-current" />{course.rating}</div>
-            <span className="text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded-full">{course.level}</span>
-          </div>
-          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{course.title}</h3>
-          <p className="text-gray-400 text-sm mb-4 flex-1">{course.description}</p>
-          
-          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-            <div>
-              <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{course.price}</span>
-            </div>
-            <div className="flex gap-2">
-              <a href={course.trialLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors border border-white/10" title="Học thử">
-                <ExternalLink size={20} />
-              </a>
-              <button onClick={() => onBuy(course)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium flex items-center gap-1 group/btn">
-                Mua ngay <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </GlassCard>
-    </RevealOnScroll>
-  );
-};
-
-const AccountCard = ({ account, index, onBuy }) => (
-  <RevealOnScroll delay={index * 100}>
-    <GlassCard className="group h-full flex flex-col p-6">
-      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${account.color} flex items-center justify-center text-white mb-4 shadow-lg`}>
-        {account.icon}
-      </div>
-      <h3 className="text-xl font-bold text-white mb-1">{account.title}</h3>
-      <p className="text-xs font-medium mb-3 text-gray-400 uppercase">{account.platform}</p>
-      <p className="text-gray-400 text-sm mb-4 flex-1">{account.description}</p>
-      
-      <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
-        <span className={`text-xl font-bold ${account.isContact ? 'text-amber-400' : 'text-white'}`}>{account.price}</span>
-        <button onClick={() => onBuy(account)} className={`px-4 py-2 rounded-xl font-medium flex items-center gap-2 ${account.isContact ? 'bg-amber-600 hover:bg-amber-500' : `bg-gradient-to-r ${account.color} hover:opacity-90`} text-white`}>
-          {account.isContact ? <Phone size={16} /> : <ShoppingCart size={16} />}
-          {account.isContact ? 'Liên hệ' : 'Mua'}
-        </button>
-      </div>
-    </GlassCard>
-  </RevealOnScroll>
-);
-
-const ReviewCard = ({ review }) => (
-  <GlassCard className="w-[320px] md:w-[380px] shrink-0 mx-3 p-6" hover={false}>
-    <div className="flex justify-between items-start mb-4">
-      <div className="flex gap-1 text-amber-400">
-        {[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < (review.rating || 5) ? "fill-current" : "text-gray-600"} />)}
-      </div>
-      <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-cyan-900/30 text-cyan-400 border border-cyan-500/30">
-        {review.type || "Thành viên"}
-      </span>
-    </div>
-    <p className="text-gray-300 italic text-sm line-clamp-3 mb-4">"{review.content}"</p>
-    <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">{review.name?.charAt(0)}</div>
-      <div>
-        <h4 className="text-white font-bold text-sm">{review.name}</h4>
-        <p className="text-cyan-500 text-xs flex items-center gap-1"><CheckCircle size={10} className="fill-current" /> Đã xác thực</p>
-      </div>
-    </div>
-  </GlassCard>
-);
-
-export default function GalaxyShop() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const scrollProgress = useScrollProgress();
-  const mousePosition = useMousePosition();
-  
-  // Logic Đặt hàng / Tra cứu
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', quantity: 1 });
-  const [orderStep, setOrderStep] = useState(1);
-  const [searchEmail, setSearchEmail] = useState('');
-  const [myOrders, setMyOrders] = useState(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [generatedOrderId, setGeneratedOrderId] = useState(''); 
-  const [orderError, setOrderError] = useState(null);
-  
-  // Logic Feedback
-  const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
-  const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paidKey, setPaidKey] = useState(null); 
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    fetchReviews();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    let interval;
-    if (orderStep === 2 && generatedOrderId) {
-      interval = setInterval(async () => {
-        try {
-          const res = await fetch(`${SCRIPT_URL}?action=check_status&orderId=${generatedOrderId}`);
-          const data = await res.json();
-          if (data.status === 'paid' && data.key) {
-            setPaidKey(data.key);
-            setOrderStep(3); 
-            clearInterval(interval);
-          }
-        } catch (e) { console.error("Polling error", e); }
-      }, 3000); 
-    }
-    return () => clearInterval(interval);
-  }, [orderStep, generatedOrderId]);
-
-  const fetchReviews = async () => {
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=get_reviews`);
-      const data = await res.json();
-      if (Array.isArray(data)) setReviews(data);
-    } catch (e) { console.error(e); }
-  };
-
-  const handleBuyClick = (product) => {
-    if(product.isContact) {
-      document.getElementById('lien-he')?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      setSelectedProduct(product);
-      setOrderForm(prev => ({ ...prev, quantity: 1 })); // Reset quantity to 1
-      setOrderStep(1);
-      setPaidKey(null);
-      setOrderError(null);
-      setTimeout(() => document.getElementById('dat-hang')?.scrollIntoView({ behavior: 'smooth' }), 100);
-    }
-  };
-
-  const validateOrderForm = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroMind - Khai Phá Tri Thức Vũ Trụ</title>
     
-    if (!orderForm.name.trim()) return "Vui lòng nhập họ tên.";
-    if (!phoneRegex.test(orderForm.phone)) return "Vui lòng nhập số điện thoại hợp lệ (10 số).";
-    if (!emailRegex.test(orderForm.email)) return "Vui lòng nhập email hợp lệ.";
-    return null;
-  };
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel để dịch code React -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  const handleOrderSubmit = async (e) => {
-    e.preventDefault();
-    setOrderError(null);
-    const error = validateOrderForm();
-    if (error) {
-      setOrderError(error);
-      return;
-    }
-    setOrderStep(1.5); 
-  };
+    <!-- Lucide Icons (Dạng UMD để dùng trong HTML thường) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-  const handleConfirmOrder = async () => {
-    setIsSubmitting(true);
-    const newOrderId = "DH" + Math.floor(Math.random() * 100000);
-    setGeneratedOrderId(newOrderId);
-
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          action: 'create_order',
-          orderId: newOrderId,
-          name: orderForm.name,
-          email: orderForm.email,
-          phone: orderForm.phone, 
-          product: selectedProduct.title,
-          price: selectedProduct.priceVal * orderForm.quantity, // Tổng tiền = Giá * Số lượng
-          quantity: orderForm.quantity // Gửi số lượng lên server
-        })
-      });
-      setOrderStep(2); 
-    } catch (e) { alert("Lỗi kết nối!"); }
-    setIsSubmitting(false);
-  };
-
-  const handleSearchOrder = async (e) => {
-    e.preventDefault();
-    setIsSearching(true);
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=check_order&email=${searchEmail}`);
-      const data = await res.json();
-      setMyOrders(data);
-    } catch (e) { alert("Lỗi khi tra cứu"); }
-    setIsSearching(false);
-  };
-
-  const handleFbSubmit = async (e) => {
-    e.preventDefault();
-    if (!fbForm.email || !fbForm.email.includes('@')) {
-      alert("Vui lòng nhập địa chỉ email hợp lệ!");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'submit_feedback', ...fbForm })
-      });
-      alert("Cảm ơn đánh giá của bạn!");
-      setFbForm({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
-      setTimeout(fetchReviews, 2000);
-    } catch (e) { alert("Lỗi gửi!"); }
-    setIsSubmitting(false);
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    alert("Đã sao chép: " + text);
-  };
-
-  const renderMarqueeRow = (items, direction = 'left') => {
-    if (items.length === 0) return null;
-    let displayItems = [...items];
-    while (displayItems.length < 6) displayItems = [...displayItems, ...items];
-    return (
-      <div className="relative flex overflow-hidden py-4">
-        <div className="flex animate-marquee hover:[animation-play-state:paused]" style={{ animationDirection: direction === 'right' ? 'reverse' : 'normal' }}>
-          {displayItems.map((review, idx) => <ReviewCard key={`${idx}-marquee`} review={review} />)}
-        </div>
-      </div>
-    );
-  };
-
-  const handleScroll = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
-  };
-
-  const handleOrderChange = (e) => {
-    const { name, value } = e.target;
-    // Chặn nhập chữ vào ô số điện thoại
-    if (name === 'phone') {
-        const numericValue = value.replace(/\D/g, ''); 
-        setOrderForm(prev => ({ ...prev, [name]: numericValue }));
-        return;
-    }
-    setOrderForm(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const incrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.min(10, prev.quantity + 1) }));
-  const decrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }));
-
-  return (
-    <div className="min-h-screen bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
-      <ParticleField />
-      
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[128px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[128px]" />
-      </div>
-
-      <div className="fixed top-0 left-0 right-0 h-1 z-[100] bg-gray-900/50">
-        <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
-      </div>
-
-      {/* Navbar */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#030712]/90 backdrop-blur-md border-b border-white/10' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">AstroMind</span>
-          </div>
-
-          <div className="hidden md:flex gap-6">
-            {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
-              <button key={item} 
-                onClick={() => document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'})}
-                className="text-gray-300 hover:text-white text-sm font-medium transition-colors relative group"
-              >
-                {item}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
-              </button>
-            ))}
-          </div>
-
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white">
-            {isMenuOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-        
-        {isMenuOpen && (
-          <div className="md:hidden bg-[#0A1220] border-t border-white/10 p-4 space-y-3">
-             {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
-              <button key={item} 
-                onClick={() => {
-                  document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'});
-                  setIsMenuOpen(false);
-                }}
-                className="block w-full text-left text-gray-300 py-2"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        )}
-      </nav>
-
-      {/* Hero */}
-      <section id="home" className="relative pt-32 pb-20 px-4 text-center z-10 min-h-screen flex items-center justify-center">
-        <RevealOnScroll>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-8">
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            <span className="text-sm text-cyan-400 font-medium">Nền tảng học tập #1 Việt Nam</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight">
-            <span className="block text-white mb-2">Khai Phá</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Tri Thức Vũ Trụ</span>
-          </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
-            Khóa học chuyên sâu và tài khoản Premium chất lượng cao. Nâng tầm tư duy với chi phí tối ưu.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <MagneticButton onClick={() => document.getElementById('khoa-hoc').scrollIntoView({ behavior: 'smooth' })} 
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
-              <BookOpen size={22} /> Khám phá khóa học <ChevronRight size={20} />
-            </MagneticButton>
-            <MagneticButton onClick={() => document.getElementById('ung-dung').scrollIntoView({ behavior: 'smooth' })} 
-              className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg flex items-center justify-center gap-2">
-              <Monitor size={22} /> Xem Ứng Dụng
-            </MagneticButton>
-          </div>
-        </RevealOnScroll>
-      </section>
-
-      {/* Stats Section - Moved here */}
-      <section className="relative z-10 py-10 px-4">
-        <RevealOnScroll delay={400}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto">
-            {STATS.map((stat, idx) => (
-              <GlassCard key={idx} className="p-4 md:p-6 text-center">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-                  {React.cloneElement(stat.icon, { className: "w-6 h-6 text-white" })}
-                </div>
-                <div className="text-2xl md:text-3xl font-bold text-white mb-1">
-                  {stat.value.includes('+') ? <><AnimatedCounter end={parseInt(stat.value)} />+</> : stat.value.includes('%') ? <><AnimatedCounter end={parseInt(stat.value)} />%</> : stat.value}
-                </div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
-              </GlassCard>
-            ))}
-          </div>
-        </RevealOnScroll>
-      </section>
-
-      {/* Features */}
-      <section className="relative z-10 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((feature, idx) => (
-              <RevealOnScroll key={idx} delay={idx * 100}>
-                {/* Added h-full and flex column to ensure equal height */}
-                <GlassCard className="p-6 text-center h-full flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
-                    {React.cloneElement(feature.icon, { className: "w-7 h-7 text-cyan-400" })}
-                  </div>
-                  <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-500 flex-1">{feature.description}</p>
-                </GlassCard>
-              </RevealOnScroll>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Courses */}
-      <section id="khoa-hoc" className="py-20 px-4 max-w-7xl mx-auto">
-        <RevealOnScroll>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Khóa Học Triết Học</h2>
-            <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full" />
-          </div>
-        </RevealOnScroll>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {COURSES.map((course, idx) => (
-            <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
-          ))}
-        </div>
-      </section>
-
-      {/* Apps */}
-      <section id="ung-dung" className="py-20 px-4 max-w-7xl mx-auto">
-        <RevealOnScroll>
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Tài Khoản & Ứng Dụng</h2>
-            <div className="h-1 w-24 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full" />
-          </div>
-        </RevealOnScroll>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {ACCOUNTS.map((acc, idx) => (
-            <AccountCard key={acc.id} account={acc} index={idx} onBuy={handleBuyClick} />
-          ))}
-        </div>
-      </section>
-
-      {/* ORDER FORM SECTION */}
-      <section id="dat-hang" className={`py-20 px-4 transition-all duration-500 ${selectedProduct ? 'block' : 'hidden'}`}>
-        <div className="max-w-3xl mx-auto">
-          <GlassCard className="p-8 border-cyan-500/30">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-cyan-400">
-                {orderStep === 1 ? 'Thông Tin Đặt Hàng' : orderStep === 1.5 ? 'Xác Nhận Thông Tin' : orderStep === 2 ? 'Thanh Toán' : 'Thành Công'}
-              </h2>
-              <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-white"><X /></button>
-            </div>
-            
-            {orderError && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-300 text-sm animate-fade-in-down">
-                <AlertCircle size={16} />
-                {orderError}
-              </div>
-            )}
-
-            {orderStep === 1 ? (
-              <form onSubmit={handleOrderSubmit} className="space-y-4">
-                <div className="bg-white/5 p-4 rounded-xl mb-4 flex flex-col gap-3 border border-white/10">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-white">{selectedProduct?.title}</span>
-                    <span className="text-cyan-400 font-bold">{selectedProduct?.price}</span>
-                  </div>
-                  
-                  {/* QUANTITY SELECTOR */}
-                  <div className="flex items-center justify-between border-t border-white/10 pt-3">
-                    <span className="text-gray-400 text-sm">Số lượng:</span>
-                    <div className="flex items-center gap-3">
-                       <button type="button" onClick={decrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
-                         <Minus size={16} />
-                       </button>
-                       <span className="text-white font-bold w-6 text-center">{orderForm.quantity}</span>
-                       <button type="button" onClick={incrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
-                         <Plus size={16} />
-                       </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center border-t border-white/10 pt-3">
-                    <span className="text-white font-bold">Tổng tiền:</span>
-                    <span className="text-xl font-bold text-green-400">
-                       {(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                    value={orderForm.name} onChange={handleOrderChange} name="name" />
-                  <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                    value={orderForm.phone} onChange={handleOrderChange} name="phone" />
-                </div>
-                <input required type="email" placeholder="Email (Để nhận Key/Tài khoản)" className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                  value={orderForm.email} onChange={handleOrderChange} name="email" />
-                
-                <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 transition-opacity">
-                  Tiếp tục
-                </button>
-              </form>
-            ) : orderStep === 1.5 ? (
-              <div className="space-y-6">
-                <div className="bg-white/5 p-6 rounded-xl border border-white/10 space-y-3">
-                  <h3 className="text-lg font-bold text-white border-b border-white/10 pb-2 mb-2">Vui lòng kiểm tra lại</h3>
-                  <p className="flex justify-between"><span className="text-gray-400">Sản phẩm:</span> <span className="font-medium text-white">{selectedProduct?.title}</span></p>
-                  <p className="flex justify-between"><span className="text-gray-400">Đơn giá:</span> <span className="text-white">{selectedProduct?.price}</span></p>
-                  <p className="flex justify-between"><span className="text-gray-400">Số lượng:</span> <span className="font-bold text-white">{orderForm.quantity}</span></p>
-                  <p className="flex justify-between border-t border-white/10 pt-2"><span className="text-gray-400">Tổng tiền:</span> <span className="font-bold text-green-400 text-lg">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
-                  
-                  <div className="border-t border-white/10 pt-2 mt-2">
-                    <p className="flex justify-between"><span className="text-gray-400">Họ tên:</span> <span className="text-white">{orderForm.name}</span></p>
-                    <p className="flex justify-between"><span className="text-gray-400">SĐT:</span> <span className="text-white">{orderForm.phone}</span></p>
-                    <p className="flex justify-between"><span className="text-gray-400">Email:</span> <span className="text-white">{orderForm.email}</span></p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-xl font-bold hover:bg-gray-600 text-white">Quay lại</button>
-                  <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 text-white">
-                    {isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}
-                  </button>
-                </div>
-              </div>
-            ) : orderStep === 2 ? (
-              <div className="text-center space-y-6">
-                <div className="bg-white p-4 rounded-xl w-48 h-48 mx-auto">
-                  <img 
-                    src={`${BANK_INFO.qrLink}?amount=${selectedProduct?.priceVal * orderForm.quantity}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} 
-                    alt="QR Thanh Toan" 
-                    className="w-full h-full object-contain" 
-                  />
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl text-left space-y-2 text-sm border border-white/10">
-                  <p className="flex justify-between"><span>Ngân hàng:</span> <span className="font-bold text-white">{BANK_INFO.bankId}</span></p>
-                  <p className="flex justify-between items-center">
-                    <span>Số tài khoản:</span> 
-                    <span className="font-bold text-white flex items-center gap-2">
-                      {BANK_INFO.accountNum} 
-                      <Copy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/>
-                    </span>
-                  </p>
-                  <p className="flex justify-between"><span>Chủ tài khoản:</span> <span className="font-bold text-white">{BANK_INFO.accountName}</span></p>
-                  <p className="flex justify-between items-center text-yellow-400 border-t border-white/10 pt-2 mt-2">
-                    <span>Nội dung CK:</span> 
-                    <span className="font-bold flex items-center gap-2">
-                      {generatedOrderId} 
-                      <Copy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/>
-                    </span>
-                  </p>
-                  <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
-                </div>
-                <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse">
-                  <Loader className="animate-spin" size={16}/> Đang chờ thanh toán...
-                </div>
-                <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">
-                  Quay lại
-                </button>
-              </div>
-            ) : (
-              <div className="text-center py-10 animate-fade-in">
-                <div className="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle size={40} />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">Thanh Toán Thành Công!</h3>
-                <div className="bg-green-900/30 border border-green-500/30 p-4 rounded-xl mb-6">
-                  <p className="text-sm text-gray-300 mb-2">Mã kích hoạt / Tài khoản của bạn:</p>
-                  <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">
-                    {paidKey}
-                  </div>
-                </div>
-                <p className="text-gray-400 text-sm mb-6">Vui lòng lưu lại thông tin này.</p>
-                <button onClick={() => setSelectedProduct(null)} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white">
-                  Đóng
-                </button>
-              </div>
-            )}
-          </GlassCard>
-        </div>
-      </section>
-
-      {/* CHECK ORDER */}
-      <section id="tra-cuu" className="py-20 px-4 max-w-2xl mx-auto text-center">
-        <h2 className="text-3xl font-bold mb-8 text-white">Tra Cứu Đơn Hàng</h2>
-        <GlassCard className="p-6">
-          <form onSubmit={handleSearchOrder} className="flex gap-2 mb-6">
-            <input required type="email" placeholder="Nhập Email mua hàng..." 
-              className="flex-1 bg-black/40 border border-gray-700 rounded-xl px-4 py-2 outline-none focus:border-cyan-500 text-white"
-              value={searchEmail} onChange={e => setSearchEmail(e.target.value)}
-            />
-            <button disabled={isSearching} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-xl flex items-center justify-center">
-              {isSearching ? <Loader className="animate-spin" /> : <Search />}
-            </button>
-          </form>
-
-          {myOrders && (
-            <div className="text-left space-y-3">
-              {Array.isArray(myOrders) && myOrders.length > 0 ? myOrders.map((order, i) => (
-                <div key={i} className="bg-black/30 p-4 rounded-xl border border-gray-700">
-                  <div className="flex justify-between mb-1">
-                    <span className="font-bold text-white">{order.product}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded ${order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                      {order.status === 'Paid' ? 'Đã thanh toán' : order.status}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-400 mt-2 p-2 bg-black/40 rounded border border-white/5 break-all font-mono whitespace-pre-line">
-                    {order.delivery || "Đang chờ cập nhật..."}
-                  </div>
-                </div>
-              )) : (
-                <div className="text-gray-400">Không tìm thấy đơn hàng nào.</div>
-              )}
-            </div>
-          )}
-        </GlassCard>
-      </section>
-
-      {/* Feedback Section */}
-      <section id="feedback" className="relative z-10 py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
-          <RevealOnScroll>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Học Viên Nói Gì?</h2>
-            <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full" />
-          </RevealOnScroll>
-        </div>
-
-        {reviews.length > 0 && (
-          <div className="mb-20 space-y-8">
-            {renderMarqueeRow(reviews.slice(0, Math.ceil(reviews.length / 2)), 'left')}
-            {renderMarqueeRow(reviews.slice(Math.ceil(reviews.length / 2)), 'right')}
-          </div>
-        )}
-
-        <div className="max-w-2xl mx-auto px-4">
-          <GlassCard className="p-8">
-            <h3 className="text-2xl font-bold text-white mb-6 text-center">Gửi Đánh Giá</h3>
-            <form onSubmit={handleFbSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                  value={fbForm.name} onChange={e => setFbForm({...fbForm, name: e.target.value})} />
-                <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                  value={fbForm.email} onChange={e => setFbForm({...fbForm, email: e.target.value})} />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Đánh giá</label>
-                  <div className="flex gap-2">
-                    {[1,2,3,4,5].map(s => (
-                      <Star key={s} onClick={() => setFbForm({...fbForm, rating: s})} 
-                        className={`cursor-pointer ${s <= fbForm.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'}`} />
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Loại đánh giá</label>
-                  <div className="flex gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
-                    {['Mua khóa học', 'Mua App'].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => setFbForm({...fbForm, type })}
-                        className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
-                          fbForm.type === type 
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' 
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
-                value={fbForm.message} onChange={e => setFbForm({...fbForm, message: e.target.value})} />
-              <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90">
-                {isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
-              </button>
-            </form>
-          </GlassCard>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <section id="lien-he" className="py-12 border-t border-white/10 bg-[#020612]">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold mb-8 text-white">Kết Nối</h2>
-          <div className="flex justify-center gap-6 mb-8">
-            {SOCIAL_LINKS.map((s, i) => (
-              <a key={i} href={s.url} className={`p-3 rounded-full bg-gradient-to-r ${s.color} hover:scale-110 transition-transform`}>
-                <span className="text-white">{s.icon}</span>
-              </a>
-            ))}
-          </div>
-          <p className="text-gray-500 text-sm">© 2024 AstroMind. All rights reserved.</p>
-        </div>
-      </section>
-
-      <style>{`
+    <style>
+        /* Custom Animations */
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .animate-marquee { animation: marquee 40s linear infinite; }
         .animate-marquee:hover { animation-play-state: paused; }
-      `}</style>
-    </div>
-  );
-}
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        
+        @keyframes fade-in-down {
+          from { opacity: 0; transform: translateY(-20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down { animation: fade-in-down 0.5s ease-out; }
+
+        @keyframes pulse-glow {
+           0%, 100% { opacity: 0.5; box-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
+           50% { opacity: 1; box-shadow: 0 0 20px rgba(6, 182, 212, 0.8); }
+        }
+        .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+    </style>
+</head>
+<body class="bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'https://esm.sh/react@18.2.0';
+        import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+        // Import các icon từ thư viện lucide-react qua CDN
+        import { 
+            Star, Send, BookOpen, User, Monitor, MessageCircle, CheckCircle, Menu, X, 
+            ShoppingCart, Globe, Phone, Loader, Palette, Cloud, Bot, HelpCircle, 
+            ExternalLink, Sparkles, Zap, Award, Play, ArrowRight, Gift, Shield, 
+            Clock, Users, Heart, Rocket, Crown, Diamond, Search, Copy, ChevronRight, 
+            AlertCircle, Plus, Minus
+        } from 'https://esm.sh/lucide-react@0.263.1';
+
+        // --- CẤU HÌNH ---
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyf_nITfjuriTEFhUhqUI73jNNNrR5KhvkLIWokRKi_6dTI7gC8ASN8wkb11sNvFOYe/exec";
+        const BANK_INFO = {
+            bankId: "MB",          
+            accountNum: "11166774411", 
+            accountName: "LE NGOC TUONG", 
+            qrLink: "https://img.vietqr.io/image/MB-11166774411-compact2.jpg" 
+        };
+
+        const DEFAULT_REVIEWS = [];
+
+        const COURSES = [
+            {
+                id: 1,
+                title: "Triết Học Nhập Môn",
+                description: "Khám phá nền tảng tư duy nhân loại từ Plato đến Kant. Phù hợp cho người mới bắt đầu.",
+                price: "5.000đ", 
+                priceVal: 5000,   
+                originalPrice: "999.000đ",
+                image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://youtu.be/example1", 
+                tags: ["Triết học", "Tư duy"],
+                students: 1234,
+                rating: 4.9,
+                lessons: 24,
+                duration: "12 giờ",
+                level: "Cơ bản",
+                badge: "Bestseller"
+            },
+            {
+                id: 2,
+                title: "Chủ Nghĩa Khắc Kỷ",
+                description: "Rèn luyện bản lĩnh và sự bình thản trước mọi biến cố của cuộc sống hiện đại.",
+                price: "350.000đ",
+                priceVal: 350000,
+                originalPrice: "700.000đ",
+                image: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://youtu.be/example2",
+                tags: ["Tâm lý", "Thực hành"],
+                students: 892,
+                rating: 4.8,
+                lessons: 18,
+                duration: "8 giờ",
+                level: "Trung bình",
+                badge: "Hot"
+            },
+            {
+                id: 3,
+                title: "Tư Duy Phản Biện",
+                description: "Nâng cao khả năng lập luận, phân tích vấn đề và đưa ra quyết định chính xác.",
+                price: "599.000đ",
+                priceVal: 599000,
+                originalPrice: "1.200.000đ",
+                image: "https://images.unsplash.com/photo-1555445054-d1863b935484?auto=format&fit=crop&q=80&w=600",
+                trialLink: "https://youtu.be/example3",
+                tags: ["Kỹ năng mềm", "Logic"],
+                students: 2156,
+                rating: 4.95,
+                lessons: 32,
+                duration: "16 giờ",
+                level: "Nâng cao",
+                badge: "Premium"
+            }
+        ];
+
+        const ACCOUNTS = [
+            {
+                id: 'gg',
+                title: "Tài khoản Google",
+                description: "Dung lượng Drive không giới hạn, bảo hành trọn đời.",
+                price: "5.000đ", 
+                priceVal: 5000,   
+                platform: "Google One",
+                icon: <Cloud className="w-8 h-8" />,
+                color: "from-blue-500 to-cyan-400",
+                features: ["15TB Storage", "Bảo hành vĩnh viễn"]
+            },
+            {
+                id: 'gpt',
+                title: "ChatGPT Plus",
+                description: "Sử dụng GPT-4, DALL-E 3, phân tích dữ liệu nâng cao.",
+                price: "490.000đ",
+                priceVal: 490000,
+                platform: "OpenAI",
+                icon: <Bot className="w-8 h-8" />,
+                color: "from-emerald-500 to-green-400",
+                features: ["GPT-4 Turbo", "DALL-E 3"]
+            },
+            {
+                id: 'canva',
+                title: "Canva Pro/Edu",
+                description: "Nâng cấp chính chủ, đầy đủ tính năng thiết kế Premium.",
+                price: "150.000đ",
+                priceVal: 150000,
+                platform: "Canva",
+                icon: <Palette className="w-8 h-8" />,
+                color: "from-purple-500 to-pink-400",
+                features: ["Pro Assets", "Magic Resize"]
+            },
+            {
+                id: 'contact',
+                title: "Yêu cầu App Khác",
+                description: "Liên hệ để được tư vấn phần mềm khác.",
+                price: "Liên hệ",
+                priceVal: 0,
+                platform: "Support",
+                icon: <HelpCircle className="w-8 h-8" />,
+                color: "from-amber-500 to-orange-400",
+                isContact: true,
+                features: ["Tư vấn miễn phí", "Hỗ trợ 24/7"]
+            }
+        ];
+
+        const STATS = [
+            { icon: <Users />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
+            { icon: <BookOpen />, value: "50+", label: "Khóa học", color: "from-purple-400 to-pink-500" },
+            { icon: <Award />, value: "99%", label: "Hài lòng", color: "from-amber-400 to-orange-500" },
+            { icon: <Clock />, value: "24/7", label: "Hỗ trợ", color: "from-emerald-400 to-teal-500" }
+        ];
+
+        const FEATURES = [
+            { icon: <Shield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
+            { icon: <Zap />, title: "Kích hoạt tức thì", description: "Nhận tài khoản ngay sau khi thanh toán" },
+            { icon: <Gift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
+            { icon: <Heart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7 giải đáp mọi thắc mắc" }
+        ];
+
+        const SOCIAL_LINKS = [
+            { name: "Zalo", url: "#", color: "from-blue-400 to-blue-600", icon: <MessageCircle /> },
+            { name: "Facebook", url: "#", color: "from-blue-600 to-blue-800", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
+            { name: "X (Twitter)", url: "#", color: "from-gray-700 to-black", icon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> },
+            { name: "Telegram", url: "#", color: "from-cyan-400 to-blue-500", icon: <Send className="w-6 h-6" /> }
+        ];
+
+        // --- COMPONENTS ---
+        const ParticleField = () => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const particles = [];
+                const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
+                for (let i = 0; i < 100; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 2 + 0.5,
+                        speedX: (Math.random() - 0.5) * 0.5,
+                        speedY: (Math.random() - 0.5) * 0.5,
+                        opacity: Math.random() * 0.5 + 0.2,
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+                let animationId;
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach((particle) => {
+                        particle.x += particle.speedX;
+                        particle.y += particle.speedY;
+                        if (particle.x < 0) particle.x = canvas.width;
+                        if (particle.x > canvas.width) particle.x = 0;
+                        if (particle.y < 0) particle.y = canvas.height;
+                        if (particle.y > canvas.height) particle.y = 0;
+                        ctx.beginPath();
+                        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                        ctx.fillStyle = particle.color;
+                        ctx.globalAlpha = particle.opacity;
+                        ctx.fill();
+                    });
+                    ctx.globalAlpha = 1;
+                    animationId = requestAnimationFrame(animate);
+                };
+                animate();
+                const handleResize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', handleResize);
+                return () => {
+                    cancelAnimationFrame(animationId);
+                    window.removeEventListener('resize', handleResize);
+                };
+            }, []);
+            return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
+        };
+
+        const RevealOnScroll = ({ children, delay = 0 }) => {
+            const [isVisible, setIsVisible] = useState(false);
+            const ref = useRef(null);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting) setIsVisible(true);
+                }, { threshold: 0.1 });
+                if (ref.current) observer.observe(ref.current);
+                return () => observer.disconnect();
+            }, []);
+            return (
+                <div ref={ref} className={`transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`} style={{ transitionDelay: `${delay}ms` }}>
+                    {children}
+                </div>
+            );
+        };
+
+        const GlassCard = ({ children, className = "", hover = true }) => (
+            <div className={`relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-3xl overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+                {children}
+            </div>
+        );
+
+        const MagneticButton = ({ children, className = "", onClick }) => {
+            const buttonRef = useRef(null);
+            const [position, setPosition] = useState({ x: 0, y: 0 });
+            const handleMouseMove = (e) => {
+                if (!buttonRef.current) return;
+                const rect = buttonRef.current.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                setPosition({ x: x * 0.2, y: y * 0.2 });
+            };
+            const handleMouseLeave = () => setPosition({ x: 0, y: 0 });
+            return (
+                <button
+                    ref={buttonRef} onClick={onClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}
+                    className={`transform transition-transform duration-300 ${className}`} style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+                >
+                    {children}
+                </button>
+            );
+        };
+
+        const AnimatedCounter = ({ end, duration = 2000, suffix = "" }) => {
+            const [count, setCount] = useState(0);
+            const ref = useRef(null);
+            const [isVisible, setIsVisible] = useState(false);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setIsVisible(true); });
+                if (ref.current) observer.observe(ref.current);
+                return () => observer.disconnect();
+            }, []);
+            useEffect(() => {
+                if (!isVisible) return;
+                let startTime;
+                const animate = (currentTime) => {
+                    if (!startTime) startTime = currentTime;
+                    const progress = Math.min((currentTime - startTime) / duration, 1);
+                    setCount(Math.floor(progress * end));
+                    if (progress < 1) requestAnimationFrame(animate);
+                };
+                requestAnimationFrame(animate);
+            }, [isVisible, end, duration]);
+            return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+        };
+
+        const CourseCard = ({ course, index, onBuy }) => {
+            const [isHovered, setIsHovered] = useState(false);
+            const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
+            
+            return (
+                <RevealOnScroll delay={index * 150}>
+                    <GlassCard className="group h-full flex flex-col">
+                        <div className="relative h-56 overflow-hidden" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
+                            <img src={course.image} alt={course.title} className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110 blur-sm' : 'scale-100'}`} />
+                            <div className={`absolute inset-0 flex items-center justify-center z-20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                                <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center cursor-pointer border border-white/30">
+                                    <Play className="w-6 h-6 text-white fill-white ml-1" />
+                                </div>
+                            </div>
+                            <div className="absolute bottom-4 left-4 z-20 flex flex-wrap gap-2">
+                                {course.badge && (
+                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold text-white bg-gradient-to-r ${badgeColors[course.badge]} shadow-lg`}>
+                                        {course.badge}
+                                    </span>
+                                )}
+                                {course.tags.map(tag => (
+                                    <span key={tag} className="px-2 py-1 rounded-lg text-xs font-medium bg-black/50 backdrop-blur-md text-white border border-white/10">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-1 text-amber-400 text-sm font-bold"><Star className="w-4 h-4 fill-current" />{course.rating}</div>
+                                <span className="text-xs text-gray-400 bg-gray-800/50 px-2 py-1 rounded-full">{course.level}</span>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">{course.title}</h3>
+                            <p className="text-gray-400 text-sm mb-4 flex-1">{course.description}</p>
+                            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                                <div>
+                                    <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">{course.price}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <a href={course.trialLink} target="_blank" rel="noopener noreferrer" className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-colors border border-white/10" title="Học thử">
+                                        <ExternalLink size={20} />
+                                    </a>
+                                    <button onClick={() => onBuy(course)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium flex items-center gap-1 group/btn">
+                                        Mua ngay <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </GlassCard>
+                </RevealOnScroll>
+            );
+        };
+
+        const AccountCard = ({ account, index, onBuy }) => (
+            <RevealOnScroll delay={index * 100}>
+                <GlassCard className="group h-full flex flex-col p-6">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${account.color} flex items-center justify-center text-white mb-4 shadow-lg`}>
+                        {account.icon}
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-1">{account.title}</h3>
+                    <p className="text-xs font-medium mb-3 text-gray-400 uppercase">{account.platform}</p>
+                    <p className="text-gray-400 text-sm mb-4 flex-1">{account.description}</p>
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
+                        <span className={`text-xl font-bold ${account.isContact ? 'text-amber-400' : 'text-white'}`}>{account.price}</span>
+                        <button onClick={() => onBuy(account)} className={`px-4 py-2 rounded-xl font-medium flex items-center gap-2 ${account.isContact ? 'bg-amber-600 hover:bg-amber-500' : `bg-gradient-to-r ${account.color} hover:opacity-90`} text-white`}>
+                            {account.isContact ? <Phone size={16} /> : <ShoppingCart size={16} />}
+                            {account.isContact ? 'Liên hệ' : 'Mua'}
+                        </button>
+                    </div>
+                </GlassCard>
+            </RevealOnScroll>
+        );
+
+        const ReviewCard = ({ review }) => (
+            <GlassCard className="w-[320px] md:w-[380px] shrink-0 mx-3 p-6" hover={false}>
+                <div className="flex justify-between items-start mb-4">
+                    <div className="flex gap-1 text-amber-400">
+                        {[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < (review.rating || 5) ? "fill-current" : "text-gray-600"} />)}
+                    </div>
+                    <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-cyan-900/30 text-cyan-400 border border-cyan-500/30">
+                        {review.type || "Thành viên"}
+                    </span>
+                </div>
+                <p className="text-gray-300 italic text-sm line-clamp-3 mb-4">"{review.content}"</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold">{review.name?.charAt(0)}</div>
+                    <div>
+                        <h4 className="text-white font-bold text-sm">{review.name}</h4>
+                        <p className="text-cyan-500 text-xs flex items-center gap-1"><CheckCircle size={10} className="fill-current" /> Đã xác thực</p>
+                    </div>
+                </div>
+            </GlassCard>
+        );
+
+        function GalaxyShop() {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const [scrolled, setScrolled] = useState(false);
+            
+            // Logic Hooks
+            const [scrollProgress, setScrollProgress] = useState(0);
+
+            useEffect(() => {
+                const updateProgress = () => {
+                    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+                    const scrolled = (window.scrollY / scrollHeight) * 100;
+                    setScrollProgress(scrolled);
+                };
+                window.addEventListener('scroll', updateProgress);
+                return () => window.removeEventListener('scroll', updateProgress);
+            }, []);
+
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                fetchReviews();
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            // Logic Đặt hàng
+            const [selectedProduct, setSelectedProduct] = useState(null);
+            const [orderForm, setOrderForm] = useState({ name: '', email: '', phone: '', quantity: 1 });
+            const [orderStep, setOrderStep] = useState(1);
+            const [searchEmail, setSearchEmail] = useState('');
+            const [myOrders, setMyOrders] = useState(null);
+            const [isSearching, setIsSearching] = useState(false);
+            const [generatedOrderId, setGeneratedOrderId] = useState(''); 
+            const [orderError, setOrderError] = useState(null);
+            
+            // Logic Feedback
+            const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
+            const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
+            const [isSubmitting, setIsSubmitting] = useState(false);
+            const [paidKey, setPaidKey] = useState(null); 
+
+            useEffect(() => {
+                let interval;
+                if (orderStep === 2 && generatedOrderId) {
+                    interval = setInterval(async () => {
+                        try {
+                            const res = await fetch(`${SCRIPT_URL}?action=check_status&orderId=${generatedOrderId}`);
+                            const data = await res.json();
+                            if (data.status === 'paid' && data.key) {
+                                setPaidKey(data.key);
+                                setOrderStep(3); 
+                                clearInterval(interval);
+                            }
+                        } catch (e) { console.error("Polling error", e); }
+                    }, 3000); 
+                }
+                return () => clearInterval(interval);
+            }, [orderStep, generatedOrderId]);
+
+            const fetchReviews = async () => {
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?action=get_reviews`);
+                    const data = await res.json();
+                    if (Array.isArray(data)) setReviews(data);
+                } catch (e) { console.error(e); }
+            };
+
+            const handleBuyClick = (product) => {
+                if(product.isContact) {
+                    document.getElementById('lien-he')?.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    setSelectedProduct(product);
+                    setOrderForm(prev => ({ ...prev, quantity: 1 }));
+                    setOrderStep(1);
+                    setPaidKey(null);
+                    setOrderError(null);
+                    setTimeout(() => document.getElementById('dat-hang')?.scrollIntoView({ behavior: 'smooth' }), 100);
+                }
+            };
+
+            const validateOrderForm = () => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+                
+                if (!orderForm.name.trim()) return "Vui lòng nhập họ tên.";
+                if (!phoneRegex.test(orderForm.phone)) return "Vui lòng nhập số điện thoại hợp lệ (10 số).";
+                if (!emailRegex.test(orderForm.email)) return "Vui lòng nhập email hợp lệ.";
+                return null;
+            };
+
+            const handleOrderSubmit = async (e) => {
+                e.preventDefault();
+                setOrderError(null);
+                const error = validateOrderForm();
+                if (error) {
+                    setOrderError(error);
+                    return;
+                }
+                setOrderStep(1.5); 
+            };
+
+            const handleConfirmOrder = async () => {
+                setIsSubmitting(true);
+                const newOrderId = "DH" + Math.floor(Math.random() * 100000);
+                setGeneratedOrderId(newOrderId);
+
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'create_order',
+                            orderId: newOrderId,
+                            name: orderForm.name,
+                            email: orderForm.email,
+                            phone: orderForm.phone, 
+                            product: selectedProduct.title,
+                            price: selectedProduct.priceVal * orderForm.quantity,
+                            quantity: orderForm.quantity
+                        })
+                    });
+                    setOrderStep(2); 
+                } catch (e) { alert("Lỗi kết nối!"); }
+                setIsSubmitting(false);
+            };
+
+            const handleSearchOrder = async (e) => {
+                e.preventDefault();
+                setIsSearching(true);
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?action=check_order&email=${searchEmail}`);
+                    const data = await res.json();
+                    setMyOrders(data);
+                } catch (e) { alert("Lỗi khi tra cứu"); }
+                setIsSearching(false);
+            };
+
+            const handleFbSubmit = async (e) => {
+                e.preventDefault();
+                if (!fbForm.email || !fbForm.email.includes('@')) {
+                    alert("Vui lòng nhập địa chỉ email hợp lệ!");
+                    return;
+                }
+                setIsSubmitting(true);
+                try {
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ action: 'submit_feedback', ...fbForm })
+                    });
+                    alert("Cảm ơn đánh giá của bạn!");
+                    setFbForm({ name: '', email: '', message: '', rating: 5, type: 'Mua khóa học' });
+                    setTimeout(fetchReviews, 2000);
+                } catch (e) { alert("Lỗi gửi!"); }
+                setIsSubmitting(false);
+            };
+
+            const copyToClipboard = (text) => {
+                navigator.clipboard.writeText(text);
+                alert("Đã sao chép: " + text);
+            };
+
+            const renderMarqueeRow = (items, direction = 'left') => {
+                if (items.length === 0) return null;
+                let displayItems = [...items];
+                while (displayItems.length < 6) displayItems = [...displayItems, ...items];
+                return (
+                    <div className="relative flex overflow-hidden py-4">
+                        <div className="flex animate-marquee hover:[animation-play-state:paused]" style={{ animationDirection: direction === 'right' ? 'reverse' : 'normal' }}>
+                            {displayItems.map((review, idx) => <ReviewCard key={`${idx}-marquee`} review={review} />)}
+                        </div>
+                    </div>
+                );
+            };
+
+            const handleOrderChange = (e) => {
+                const { name, value } = e.target;
+                if (name === 'phone') {
+                    const numericValue = value.replace(/\D/g, ''); 
+                    setOrderForm(prev => ({ ...prev, [name]: numericValue }));
+                    return;
+                }
+                setOrderForm(prev => ({ ...prev, [name]: value }));
+            };
+
+            const incrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.min(10, prev.quantity + 1) }));
+            const decrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }));
+            
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFbForm(prev => ({ ...prev, [name]: value }));
+            };
+
+            return (
+                <div className="min-h-screen bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
+                    <ParticleField />
+                    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+                        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[128px] animate-pulse" />
+                        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[128px] animate-pulse" style={{ animationDelay: '1s' }} />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[128px]" />
+                    </div>
+
+                    <div className="fixed top-0 left-0 right-0 h-1 z-[100] bg-gray-900/50">
+                        <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
+                    </div>
+
+                    {/* Navbar */}
+                    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#030712]/90 backdrop-blur-md border-b border-white/10' : 'bg-transparent'}`}>
+                        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center">
+                                    <Sparkles size={16} className="text-white" />
+                                </div>
+                                <span className="font-bold text-xl tracking-tight">AstroMind</span>
+                            </div>
+
+                            <div className="hidden md:flex gap-6">
+                                {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                    <button key={item} 
+                                        onClick={() => document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'})}
+                                        className="text-gray-300 hover:text-white text-sm font-medium transition-colors relative group"
+                                    >
+                                        {item}
+                                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-cyan-400 transition-all duration-300 group-hover:w-full"></span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden text-white">
+                                {isMenuOpen ? <X /> : <Menu />}
+                            </button>
+                        </div>
+                        
+                        {isMenuOpen && (
+                            <div className="md:hidden bg-[#0A1220] border-t border-white/10 p-4 space-y-3">
+                                {['Khóa học', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                    <button key={item} 
+                                        onClick={() => {
+                                            document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'});
+                                            setIsMenuOpen(false);
+                                        }}
+                                        className="block w-full text-left text-gray-300 py-2"
+                                    >
+                                        {item}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Hero */}
+                    <section id="home" className="relative pt-32 pb-20 px-4 text-center z-10 min-h-screen flex items-center justify-center">
+                        <RevealOnScroll>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-8">
+                                <Sparkles className="w-4 h-4 text-cyan-400" />
+                                <span className="text-sm text-cyan-400 font-medium">Nền tảng học tập #1 Việt Nam</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 tracking-tight">
+                                <span className="block text-white mb-2">Khai Phá</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Tri Thức Vũ Trụ</span>
+                            </h1>
+                            <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-12">
+                                Khóa học chuyên sâu và tài khoản Premium chất lượng cao. Nâng tầm tư duy với chi phí tối ưu.
+                            </p>
+                            <div className="flex flex-col sm:flex-row justify-center gap-4">
+                                <MagneticButton onClick={() => document.getElementById('khoa-hoc').scrollIntoView({ behavior: 'smooth' })} 
+                                    className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+                                    <BookOpen size={22} /> Khám phá khóa học <ChevronRight size={20} />
+                                </MagneticButton>
+                                <MagneticButton onClick={() => document.getElementById('ung-dung').scrollIntoView({ behavior: 'smooth' })} 
+                                    className="px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg flex items-center justify-center gap-2">
+                                    <Monitor size={22} /> Xem Ứng Dụng
+                                </MagneticButton>
+                            </div>
+                        </RevealOnScroll>
+                    </section>
+
+                     {/* Stats Section - Moved here */}
+                    <section className="relative z-10 py-10 px-4">
+                        <RevealOnScroll delay={400}>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-5xl mx-auto">
+                            {STATS.map((stat, idx) => (
+                            <GlassCard key={idx} className="p-4 md:p-6 text-center">
+                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+                                {React.cloneElement(stat.icon, { className: "w-6 h-6 text-white" })}
+                                </div>
+                                <div className="text-2xl md:text-3xl font-bold text-white mb-1">
+                                {stat.value.includes('+') ? <><AnimatedCounter end={parseInt(stat.value)} />+</> : stat.value.includes('%') ? <><AnimatedCounter end={parseInt(stat.value)} />%</> : stat.value}
+                                </div>
+                                <div className="text-sm text-gray-500">{stat.label}</div>
+                            </GlassCard>
+                            ))}
+                        </div>
+                        </RevealOnScroll>
+                    </section>
+
+                    {/* Features */}
+                    <section className="relative z-10 py-20">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {FEATURES.map((feature, idx) => (
+                                    <RevealOnScroll key={idx} delay={idx * 100}>
+                                        <GlassCard className="p-6 text-center h-full flex flex-col items-center">
+                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
+                                                {React.cloneElement(feature.icon, { className: "w-7 h-7 text-cyan-400" })}
+                                            </div>
+                                            <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                                            <p className="text-sm text-gray-500 flex-1">{feature.description}</p>
+                                        </GlassCard>
+                                    </RevealOnScroll>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Courses */}
+                    <section id="khoa-hoc" className="py-20 px-4 max-w-7xl mx-auto">
+                        <RevealOnScroll>
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Khóa Học Triết Học</h2>
+                                <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full" />
+                            </div>
+                        </RevealOnScroll>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {COURSES.map((course, idx) => (
+                                <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Apps */}
+                    <section id="ung-dung" className="py-20 px-4 max-w-7xl mx-auto">
+                        <RevealOnScroll>
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Tài Khoản & Ứng Dụng</h2>
+                                <div className="h-1 w-24 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full" />
+                            </div>
+                        </RevealOnScroll>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {ACCOUNTS.map((acc, idx) => (
+                                <AccountCard key={acc.id} account={acc} index={idx} onBuy={handleBuyClick} />
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* ORDER FORM SECTION */}
+                    <section id="dat-hang" className={`py-20 px-4 transition-all duration-500 ${selectedProduct ? 'block' : 'hidden'}`}>
+                        <div className="max-w-3xl mx-auto">
+                            <GlassCard className="p-8 border-cyan-500/30">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-bold text-cyan-400">
+                                        {orderStep === 1 ? 'Thông Tin Đặt Hàng' : orderStep === 1.5 ? 'Xác Nhận Thông Tin' : orderStep === 2 ? 'Thanh Toán' : 'Thành Công'}
+                                    </h2>
+                                    <button onClick={() => setSelectedProduct(null)} className="text-gray-400 hover:text-white"><X /></button>
+                                </div>
+                                
+                                {orderError && (
+                                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2 text-red-300 text-sm animate-fade-in-down">
+                                        <AlertCircle size={16} />
+                                        {orderError}
+                                    </div>
+                                )}
+
+                                {orderStep === 1 ? (
+                                    <form onSubmit={handleOrderSubmit} className="space-y-4">
+                                        <div className="bg-white/5 p-4 rounded-xl mb-4 flex flex-col gap-3 border border-white/10">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-medium text-white">{selectedProduct?.title}</span>
+                                                <span className="text-cyan-400 font-bold">{selectedProduct?.price}</span>
+                                            </div>
+                                            
+                                            {/* QUANTITY SELECTOR */}
+                                            <div className="flex items-center justify-between border-t border-white/10 pt-3">
+                                                <span className="text-gray-400 text-sm">Số lượng:</span>
+                                                <div className="flex items-center gap-3">
+                                                    <button type="button" onClick={decrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
+                                                        <Minus size={16} />
+                                                    </button>
+                                                    <span className="text-white font-bold w-6 text-center">{orderForm.quantity}</span>
+                                                    <button type="button" onClick={incrementQuantity} className="p-1 rounded-md bg-white/10 hover:bg-white/20 text-white">
+                                                        <Plus size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex justify-between items-center border-t border-white/10 pt-3">
+                                                <span className="text-white font-bold">Tổng tiền:</span>
+                                                <span className="text-xl font-bold text-green-400">
+                                                    {(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input required placeholder="Họ và Tên" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                                value={orderForm.name} onChange={handleOrderChange} name="name" />
+                                            <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                                value={orderForm.phone} onChange={handleOrderChange} name="phone" />
+                                        </div>
+                                        <input required type="email" placeholder="Email (Để nhận Key/Tài khoản)" className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                            value={orderForm.email} onChange={handleOrderChange} name="email" />
+                                        
+                                        <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 transition-opacity">
+                                            Tiếp tục
+                                        </button>
+                                    </form>
+                                ) : orderStep === 1.5 ? (
+                                    <div className="space-y-6">
+                                        <div className="bg-white/5 p-6 rounded-xl border border-white/10 space-y-3">
+                                            <h3 className="text-lg font-bold text-white border-b border-white/10 pb-2 mb-2">Vui lòng kiểm tra lại</h3>
+                                            <p className="flex justify-between"><span className="text-gray-400">Sản phẩm:</span> <span className="font-medium text-white">{selectedProduct?.title}</span></p>
+                                            <p className="flex justify-between"><span className="text-gray-400">Đơn giá:</span> <span className="text-white">{selectedProduct?.price}</span></p>
+                                            <p className="flex justify-between"><span className="text-gray-400">Số lượng:</span> <span className="font-bold text-white">{orderForm.quantity}</span></p>
+                                            <p className="flex justify-between border-t border-white/10 pt-2"><span className="text-gray-400">Tổng tiền:</span> <span className="font-bold text-green-400 text-lg">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
+                                            
+                                            <div className="border-t border-white/10 pt-2 mt-2">
+                                                <p className="flex justify-between"><span className="text-gray-400">Họ tên:</span> <span className="text-white">{orderForm.name}</span></p>
+                                                <p className="flex justify-between"><span className="text-gray-400">SĐT:</span> <span className="text-white">{orderForm.phone}</span></p>
+                                                <p className="flex justify-between"><span className="text-gray-400">Email:</span> <span className="text-white">{orderForm.email}</span></p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-xl font-bold hover:bg-gray-600 text-white">Quay lại</button>
+                                            <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90 text-white">
+                                                {isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : orderStep === 2 ? (
+                                    <div className="text-center space-y-6">
+                                        <div className="bg-white p-4 rounded-xl w-48 h-48 mx-auto">
+                                            <img 
+                                                src={`${BANK_INFO.qrLink}?amount=${selectedProduct?.priceVal * orderForm.quantity}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} 
+                                                alt="QR Thanh Toan" 
+                                                className="w-full h-full object-contain" 
+                                            />
+                                        </div>
+                                        <div className="bg-white/5 p-4 rounded-xl text-left space-y-2 text-sm border border-white/10">
+                                            <p className="flex justify-between"><span>Ngân hàng:</span> <span className="font-bold text-white">{BANK_INFO.bankId}</span></p>
+                                            <p className="flex justify-between items-center">
+                                                <span>Số tài khoản:</span> 
+                                                <span className="font-bold text-white flex items-center gap-2">
+                                                    {BANK_INFO.accountNum} 
+                                                    <Copy size={14} className="cursor-pointer text-cyan-400" onClick={() => copyToClipboard(BANK_INFO.accountNum)}/>
+                                                </span>
+                                            </p>
+                                            <p className="flex justify-between"><span>Chủ tài khoản:</span> <span className="font-bold text-white">{BANK_INFO.accountName}</span></p>
+                                            <p className="flex justify-between items-center text-yellow-400 border-t border-white/10 pt-2 mt-2">
+                                                <span>Nội dung CK:</span> 
+                                                <span className="font-bold flex items-center gap-2">
+                                                    {generatedOrderId} 
+                                                    <Copy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/>
+                                                </span>
+                                            </p>
+                                            <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{(selectedProduct?.priceVal * orderForm.quantity).toLocaleString('vi-VN')}đ</span></p>
+                                        </div>
+                                        <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse">
+                                            <Loader className="animate-spin" size={16}/> Đang chờ thanh toán...
+                                        </div>
+                                        <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">
+                                            Quay lại
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 animate-fade-in">
+                                        <div className="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <CheckCircle size={40} />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white mb-4">Thanh Toán Thành Công!</h3>
+                                        <div className="bg-green-900/30 border border-green-500/30 p-4 rounded-xl mb-6">
+                                            <p className="text-sm text-gray-300 mb-2">Mã kích hoạt / Tài khoản của bạn:</p>
+                                            <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">
+                                                {paidKey}
+                                            </div>
+                                        </div>
+                                        <p className="text-gray-400 text-sm mb-6">Vui lòng lưu lại thông tin này.</p>
+                                        <button onClick={() => setSelectedProduct(null)} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white">
+                                            Đóng
+                                        </button>
+                                    </div>
+                                )}
+                            </GlassCard>
+                        </div>
+                    </section>
+
+                    {/* CHECK ORDER */}
+                    <section id="tra-cuu" className="py-20 px-4 max-w-2xl mx-auto text-center">
+                        <h2 className="text-3xl font-bold mb-8 text-white">Tra Cứu Đơn Hàng</h2>
+                        <GlassCard className="p-6">
+                            <form onSubmit={handleSearchOrder} className="flex gap-2 mb-6">
+                                <input required type="email" placeholder="Nhập Email mua hàng..." 
+                                    className="flex-1 bg-black/40 border border-gray-700 rounded-xl px-4 py-2 outline-none focus:border-cyan-500 text-white"
+                                    value={searchEmail} onChange={e => setSearchEmail(e.target.value)}
+                                />
+                                <button disabled={isSearching} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-xl flex items-center justify-center">
+                                    {isSearching ? <Loader className="animate-spin" /> : <Search />}
+                                </button>
+                            </form>
+
+                            {myOrders && (
+                                <div className="text-left space-y-3">
+                                    {Array.isArray(myOrders) && myOrders.length > 0 ? myOrders.map((order, i) => (
+                                        <div key={i} className="bg-black/30 p-4 rounded-xl border border-gray-700">
+                                            <div className="flex justify-between mb-1">
+                                                <span className="font-bold text-white">{order.product}</span>
+                                                <span className={`text-xs px-2 py-0.5 rounded ${order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                                    {order.status === 'Paid' ? 'Đã thanh toán' : order.status}
+                                                </span>
+                                            </div>
+                                            <div className="text-sm text-gray-400 mt-2 p-2 bg-black/40 rounded border border-white/5 break-all font-mono whitespace-pre-line">
+                                                {order.delivery || "Đang chờ cập nhật..."}
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="text-gray-400">Không tìm thấy đơn hàng nào.</div>
+                                    )}
+                                </div>
+                            )}
+                        </GlassCard>
+                    </section>
+
+                    {/* Feedback Section */}
+                    <section id="feedback" className="relative z-10 py-20 overflow-hidden">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
+                            <RevealOnScroll>
+                                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Học Viên Nói Gì?</h2>
+                                <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto rounded-full" />
+                            </RevealOnScroll>
+                        </div>
+
+                        {reviews.length > 0 && (
+                            <div className="mb-20 space-y-8">
+                                {renderMarqueeRow(reviews.slice(0, Math.ceil(reviews.length / 2)), 'left')}
+                                {renderMarqueeRow(reviews.slice(Math.ceil(reviews.length / 2)), 'right')}
+                            </div>
+                        )}
+
+                        <div className="max-w-2xl mx-auto px-4">
+                            <GlassCard className="p-8">
+                                <h3 className="text-2xl font-bold text-white mb-6 text-center">Gửi Đánh Giá</h3>
+                                <form onSubmit={handleFbSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <input required placeholder="Tên của bạn" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                            value={fbForm.name} onChange={handleInputChange} name="name" />
+                                        <input required type="email" placeholder="Email (Bắt buộc)" className="bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                            value={fbForm.email} onChange={handleInputChange} name="email" />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">Đánh giá</label>
+                                            <div className="flex gap-2">
+                                                {[1,2,3,4,5].map(s => (
+                                                    <Star key={s} onClick={() => setFbForm({...fbForm, rating: s})} 
+                                                        className={`cursor-pointer ${s <= fbForm.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-600'}`} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">Loại đánh giá</label>
+                                            <div className="flex gap-2 bg-white/5 p-1 rounded-lg border border-white/10">
+                                                {['Mua khóa học', 'Mua App'].map((type) => (
+                                                    <button
+                                                        key={type}
+                                                        type="button"
+                                                        onClick={() => setFbForm({...fbForm, type })}
+                                                        className={`flex-1 py-1.5 px-3 rounded-md text-xs font-medium transition-all ${
+                                                            fbForm.type === type 
+                                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-sm' 
+                                                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                                        }`}
+                                                    >
+                                                        {type}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-xl p-3 outline-none focus:border-cyan-500 text-white"
+                                        value={fbForm.message} onChange={handleInputChange} name="message" />
+                                    <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl font-bold hover:opacity-90">
+                                        {isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
+                                    </button>
+                                </form>
+                            </GlassCard>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <section id="lien-he" className="py-12 border-t border-white/10 bg-[#020612]">
+                        <div className="max-w-7xl mx-auto px-4 text-center">
+                            <h2 className="text-2xl font-bold mb-8 text-white">Kết Nối</h2>
+                            <div className="flex justify-center gap-6 mb-8">
+                                {SOCIAL_LINKS.map((s, i) => (
+                                    <a key={i} href={s.url} className={`p-3 rounded-full bg-gradient-to-r ${s.color} hover:scale-110 transition-transform`}>
+                                        <span className="text-white">{s.icon}</span>
+                                    </a>
+                                ))}
+                            </div>
+                            <p className="text-gray-500 text-sm">© 2024 AstroMind. All rights reserved.</p>
+                        </div>
+                    </section>
+
+                    <style>{`
+                        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+                        .animate-marquee { animation: marquee 40s linear infinite; }
+                        .animate-marquee:hover { animation-play-state: paused; }
+                    `}</style>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GalaxyShop />);
+    </script>
+</body>
+</html>
