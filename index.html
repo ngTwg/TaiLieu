@@ -2164,7 +2164,12 @@
                                             </p>
                                         </div>
                                         
-                                        <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse"><IconLoader className="animate-spin" size={16}/> Đang chờ thanh toán...</div>
+                                        {/* Sửa lại loading nhỏ gọn hơn */}
+<div className="flex flex-col items-center justify-center gap-3 mt-6">
+    {/* w-10 h-10 tương đương 40px, bạn có thể sửa thành w-8 h-8 nếu muốn nhỏ hơn */}
+    <IconLoader className="animate-spin text-cyan-400 w-10 h-10" /> 
+    <span className="text-sm text-cyan-400 animate-pulse">Đang chờ thanh toán...</span>
+</div>
                                         <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">Quay lại</button>
                                     </div>
                                 ) : (
