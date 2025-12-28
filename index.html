@@ -1559,24 +1559,46 @@
             // Legal modal state
             const [legalModal, setLegalModal] = useState({ isOpen: false, pageKey: null });
 
+            // ============================================
+            // HÀM SẮP XẾP: CÒN HÀNG LÊN TRƯỚC
+            // ============================================
+            const sortByStock = (a, b) => {
+                // Nếu a còn hàng (khác 0) mà b hết hàng (bằng 0) -> a lên trước (-1)
+                if (a.quantity !== 0 && b.quantity === 0) return -1;
+                // Nếu a hết hàng mà b còn hàng -> b lên trước (1)
+                if (a.quantity === 0 && b.quantity !== 0) return 1;
+                return 0; // Giữ nguyên thứ tự nếu cùng trạng thái
+            };
+
+            // ============================================
+            // FILTERED DATA VỚI SẮP XẾP CÒN HÀNG LÊN TRƯỚC
+            // ============================================
             const filteredGiuaKi = useMemo(() => {
-                if (!searchGiuaKi.trim()) return giuaKi;
-                const term = searchGiuaKi.toLowerCase();
-                return giuaKi.filter(item => 
-                    item.title.toLowerCase().includes(term) || 
-                    item.subject.toLowerCase().includes(term) ||
-                    item.tags.some(tag => tag.toLowerCase().includes(term))
-                );
+                let result = giuaKi;
+                if (searchGiuaKi.trim()) {
+                    const term = searchGiuaKi.toLowerCase();
+                    result = giuaKi.filter(item => 
+                        item.title.toLowerCase().includes(term) || 
+                        item.subject.toLowerCase().includes(term) ||
+                        item.tags.some(tag => tag.toLowerCase().includes(term))
+                    );
+                }
+                // Sắp xếp: còn hàng lên trước
+                return [...result].sort(sortByStock);
             }, [giuaKi, searchGiuaKi]);
 
             const filteredCuoiKi = useMemo(() => {
-                if (!searchCuoiKi.trim()) return cuoiKi;
-                const term = searchCuoiKi.toLowerCase();
-                return cuoiKi.filter(item => 
-                    item.title.toLowerCase().includes(term) || 
-                    item.subject.toLowerCase().includes(term) ||
-                    item.tags.some(tag => tag.toLowerCase().includes(term))
-                );
+                let result = cuoiKi;
+                if (searchCuoiKi.trim()) {
+                    const term = searchCuoiKi.toLowerCase();
+                    result = cuoiKi.filter(item => 
+                        item.title.toLowerCase().includes(term) || 
+                        item.subject.toLowerCase().includes(term) ||
+                        item.tags.some(tag => tag.toLowerCase().includes(term))
+                    );
+                }
+                // Sắp xếp: còn hàng lên trước
+                return [...result].sort(sortByStock);
             }, [cuoiKi, searchCuoiKi]);
 
             useEffect(() => {
@@ -2099,7 +2121,7 @@
                         )}
                     </section>
 
-                    {/* Apps */}
+                    {/* Apps - ĐÃ THÊM SẮP XẾP */}
                     <section id="ung-dung" className="py-20 px-4 max-w-7xl mx-auto">
                         <RevealOnScroll>
                             <div className="text-center mb-16">
@@ -2108,13 +2130,14 @@
                             </div>
                         </RevealOnScroll>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {apps.map((acc, idx) => (
+                            {/* SẮP XẾP: CÒN HÀNG LÊN TRƯỚC */}
+                            {[...apps].sort(sortByStock).map((acc, idx) => (
                                 <AccountCard key={acc.id} account={acc} index={idx} onBuy={handleBuyClick} />
                             ))}
                         </div>
                     </section>
 
-                    {/* Source Code & Projects Section */}
+                    {/* Source Code & Projects Section - ĐÃ THÊM SẮP XẾP */}
                     <section id="source-code" className="py-20 px-4 max-w-7xl mx-auto">
                         <RevealOnScroll>
                             <div className="text-center mb-16">
@@ -2128,7 +2151,8 @@
                             </div>
                         </RevealOnScroll>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            {sourceCode.map((item, idx) => (
+                            {/* SẮP XẾP: CÒN HÀNG LÊN TRƯỚC */}
+                            {[...sourceCode].sort(sortByStock).map((item, idx) => (
                                 <SourceCodeCard key={item.id} item={item} index={idx} onBuy={handleBuyClick} />
                             ))}
                         </div>
