@@ -60,7 +60,7 @@
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Font hỗ trợ tiếng Việt tốt - THÊM display=swap -->
+    <!-- Font hỗ trợ tiếng Việt tốt -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -141,7 +141,7 @@
         .package-card {
             transition: all 0.3s ease;
         }
-        .package-card:hover {
+        .package-card:hover:not(.sold-out) {
             transform: translateY(-4px);
         }
         .package-card.selected {
@@ -150,6 +150,9 @@
         }
         .package-card.popular {
             border-color: rgba(168, 85, 247, 0.5);
+        }
+        .package-card.sold-out {
+            cursor: not-allowed;
         }
         
         /* Modal styles */
@@ -198,7 +201,7 @@
             margin-bottom: 0.5rem;
         }
 
-        /* GIAI ĐOẠN 1: Tránh Layout Shift - Set aspect-ratio cho ảnh */
+        /* Tránh Layout Shift - Set aspect-ratio cho ảnh */
         .course-image-container {
             aspect-ratio: 16 / 9;
             position: relative;
@@ -206,7 +209,7 @@
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
         }
 
-        /* GIAI ĐOẠN 2: Skeleton Loading Animation */
+        /* Skeleton Loading Animation */
         @keyframes shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
@@ -217,7 +220,7 @@
             animation: shimmer 1.5s infinite;
         }
 
-        /* GIAI ĐOẠN 3: GPU Acceleration với will-change */
+        /* GPU Acceleration với will-change */
         .glass-card {
             will-change: transform, opacity;
         }
@@ -288,10 +291,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo, useCallback, memo } = React;
 
-        // --- GIAI ĐOẠN 1: Hàm tối ưu ảnh Unsplash ---
+        // --- Hàm tối ưu ảnh Unsplash ---
         const optimizeImageUrl = (url, width = 600, quality = 80) => {
             if (!url) return '';
-            // Nếu là ảnh Unsplash, thêm params tối ưu
             if (url.includes('unsplash.com')) {
                 const separator = url.includes('?') ? '&' : '?';
                 return `${url}${separator}w=${width}&q=${quality}&fm=webp&fit=crop`;
@@ -377,7 +379,7 @@
             qrLink: "https://img.vietqr.io/image/MB-11166774411-compact2.jpg" 
         };
 
-        // Cấu hình gói sản phẩm
+        // Cấu hình gói sản phẩm - ĐÃ THÊM stockKey
         const PACKAGE_CONFIG = {
             pdf: {
                 id: 'pdf',
@@ -387,7 +389,8 @@
                 priceDisplay: '30.000đ',
                 description: 'File PDF đề thi + đáp án chi tiết',
                 color: 'from-blue-500 to-cyan-500',
-                features: ['Đề thi đầy đủ', 'Đáp án chi tiết', 'Tải về ngay']
+                features: ['Đề thi đầy đủ', 'Đáp án chi tiết', 'Tải về ngay'],
+                stockKey: 'pdf'
             },
             quiz1: {
                 id: 'quiz1',
@@ -397,7 +400,8 @@
                 priceDisplay: '6.000đ',
                 description: '1 lượt làm quiz trắc nghiệm online',
                 color: 'from-green-500 to-emerald-500',
-                features: ['1 lượt làm bài', 'Chấm điểm tự động', 'Xem đáp án sau khi nộp']
+                features: ['1 lượt làm bài', 'Chấm điểm tự động', 'Xem đáp án sau khi nộp'],
+                stockKey: 'quiz1'
             },
             quiz6: {
                 id: 'quiz6',
@@ -409,7 +413,8 @@
                 description: '6 lượt làm quiz (tiết kiệm 17%)',
                 color: 'from-emerald-500 to-teal-500',
                 features: ['6 lượt làm bài', 'Tiết kiệm 6.000đ', 'Không giới hạn thời gian'],
-                popular: true
+                popular: true,
+                stockKey: 'quiz6'
             },
             quiz10: {
                 id: 'quiz10',
@@ -420,7 +425,8 @@
                 originalPrice: '60.000đ',
                 description: '10 lượt làm quiz (tiết kiệm 33%)',
                 color: 'from-teal-500 to-cyan-500',
-                features: ['10 lượt làm bài', 'Tiết kiệm 20.000đ', 'Ưu đãi tốt nhất']
+                features: ['10 lượt làm bài', 'Tiết kiệm 20.000đ', 'Ưu đãi tốt nhất'],
+                stockKey: 'quiz10'
             },
             combo: {
                 id: 'combo',
@@ -432,7 +438,8 @@
                 description: 'File PDF + 5 lượt Quiz',
                 color: 'from-purple-500 to-pink-500',
                 features: ['File PDF đầy đủ', '5 lượt làm Quiz', 'Tiết kiệm 10.000đ'],
-                bestValue: true
+                bestValue: true,
+                stockKey: 'combo'
             }
         };
 
@@ -450,7 +457,8 @@
                 rating: 4.9,
                 questionCount: 50,
                 badge: "Bestseller",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'gk2',
@@ -464,7 +472,8 @@
                 rating: 4.8,
                 questionCount: 40,
                 badge: "Hot",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'gk3',
@@ -478,7 +487,8 @@
                 rating: 4.95,
                 questionCount: 35,
                 badge: "Premium",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'gk4',
@@ -492,7 +502,8 @@
                 rating: 4.7,
                 questionCount: 45,
                 badge: "",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'gk5',
@@ -506,7 +517,8 @@
                 rating: 4.85,
                 questionCount: 60,
                 badge: "Hot",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             }
         ];
 
@@ -523,7 +535,8 @@
                 rating: 4.95,
                 questionCount: 80,
                 badge: "Bestseller",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'ck2',
@@ -537,7 +550,8 @@
                 rating: 4.85,
                 questionCount: 70,
                 badge: "Hot",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'ck3',
@@ -551,7 +565,8 @@
                 rating: 4.9,
                 questionCount: 55,
                 badge: "Premium",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'ck4',
@@ -565,7 +580,8 @@
                 rating: 4.75,
                 questionCount: 65,
                 badge: "",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             },
             {
                 id: 'ck5',
@@ -579,7 +595,8 @@
                 rating: 4.88,
                 questionCount: 90,
                 badge: "Bestseller",
-                quantity: -1
+                quantity: -1,
+                packageStock: null
             }
         ];
 
@@ -879,7 +896,7 @@
 
         // --- COMPONENTS ---
         
-        // GIAI ĐOẠN 1 & 3: ParticleField với số hạt giảm trên Mobile + React.memo
+        // ParticleField với số hạt giảm trên Mobile + React.memo
         const ParticleField = memo(() => {
              const canvasRef = useRef(null);
              useEffect(() => {
@@ -891,7 +908,6 @@
                  const particles = [];
                  const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
                  
-                 // GIAI ĐOẠN 1: Giảm số hạt trên mobile
                  const isMobile = window.innerWidth < 768;
                  const particleCount = isMobile ? 30 : 80;
                  
@@ -939,7 +955,7 @@
              return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
          });
 
-         // GIAI ĐOẠN 3: ShootingStars với React.memo
+         // ShootingStars với React.memo
          const ShootingStars = memo(() => {
             const [stars, setStars] = useState([]);
             useEffect(() => {
@@ -972,7 +988,7 @@
              );
          };
 
-         // GIAI ĐOẠN 3: GlassCard với class will-change
+         // GlassCard với class will-change
          const GlassCard = ({ children, className = "", hover = true }) => (
              <div className={`glass-card relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
@@ -1087,7 +1103,7 @@
              );
          };
 
-         // GIAI ĐOẠN 2: Skeleton Loading Component
+         // Skeleton Loading Component
          const SkeletonCard = () => (
              <div className="glass-card relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden">
                  <div className="course-image-container skeleton"></div>
@@ -1107,78 +1123,117 @@
              </div>
          );
 
-         // Component hiển thị gói sản phẩm
-         const PackageSelector = ({ selectedPackage, onSelect }) => {
+         // Component hiển thị gói sản phẩm - CẬP NHẬT ĐỂ KIỂM TRA TỒN KHO TỪNG GÓI
+         const PackageSelector = ({ selectedPackage, onSelect, packageStock, isLoading }) => {
              const packages = Object.values(PACKAGE_CONFIG);
+             
+             // Hàm kiểm tra gói có hết hàng không
+             const isPackageSoldOut = (pkg) => {
+                 if (!packageStock || isLoading) return false;
+                 const stock = packageStock[pkg.stockKey];
+                 return stock !== undefined && stock === 0;
+             };
+             
+             // Hàm lấy số lượng tồn kho để hiển thị
+             const getPackageStock = (pkg) => {
+                 if (!packageStock || isLoading) return -1;
+                 return packageStock[pkg.stockKey];
+             };
              
              return (
                  <div className="space-y-3">
                      <label className="block text-sm font-medium text-gray-300 mb-3">Chọn gói sản phẩm:</label>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                         {packages.map((pkg) => (
-                             <div 
-                                 key={pkg.id}
-                                 onClick={() => onSelect(pkg)}
-                                 className={`package-card relative p-4 rounded-2xl border cursor-pointer transition-all ${
-                                     selectedPackage?.id === pkg.id 
-                                     ? 'selected border-cyan-500/80 bg-cyan-500/10' 
-                                     : pkg.popular 
-                                     ? 'popular border-purple-500/30 bg-white/5 hover:bg-white/10'
-                                     : pkg.bestValue
-                                     ? 'border-amber-500/30 bg-white/5 hover:bg-white/10'
-                                     : 'border-white/10 bg-white/5 hover:bg-white/10'
-                                 }`}
-                             >
-                                 {pkg.popular && (
-                                     <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-purple-500 text-white rounded-full">
-                                         PHỔ BIẾN
-                                     </span>
-                                 )}
-                                 {pkg.bestValue && (
-                                     <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full">
-                                         TIẾT KIỆM
-                                     </span>
-                                 )}
-                                 
-                                 <div className="flex items-start gap-3">
-                                     <div className={`p-2 rounded-xl bg-gradient-to-br ${pkg.color} text-white shrink-0`}>
-                                         {pkg.icon}
-                                     </div>
-                                     <div className="flex-1 min-w-0">
-                                         <div className="flex items-center justify-between gap-2">
-                                             <h4 className="font-bold text-white text-sm truncate">{pkg.name}</h4>
-                                             <div className="text-right shrink-0">
-                                                 <span className="font-bold text-cyan-400">{pkg.priceDisplay}</span>
-                                                 {pkg.originalPrice && (
-                                                     <span className="text-xs text-gray-500 line-through ml-1">{pkg.originalPrice}</span>
-                                                 )}
-                                             </div>
+                         {packages.map((pkg) => {
+                             const soldOut = isPackageSoldOut(pkg);
+                             const stock = getPackageStock(pkg);
+                             
+                             return (
+                                 <div 
+                                     key={pkg.id}
+                                     onClick={() => !soldOut && onSelect(pkg)}
+                                     className={`package-card relative p-4 rounded-2xl border cursor-pointer transition-all ${
+                                         soldOut 
+                                         ? 'sold-out opacity-60 cursor-not-allowed bg-gray-800/50 border-gray-700'
+                                         : selectedPackage?.id === pkg.id 
+                                         ? 'selected border-cyan-500/80 bg-cyan-500/10' 
+                                         : pkg.popular 
+                                         ? 'popular border-purple-500/30 bg-white/5 hover:bg-white/10'
+                                         : pkg.bestValue
+                                         ? 'border-amber-500/30 bg-white/5 hover:bg-white/10'
+                                         : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                     }`}
+                                 >
+                                     {/* Hiển thị lớp phủ Hết hàng */}
+                                     {soldOut && (
+                                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl z-10">
+                                             <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">HẾT HÀNG</span>
                                          </div>
-                                         <p className="text-xs text-gray-400 mt-1">{pkg.description}</p>
+                                     )}
+                                     
+                                     {pkg.popular && !soldOut && (
+                                         <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-purple-500 text-white rounded-full">
+                                             PHỔ BIẾN
+                                         </span>
+                                     )}
+                                     {pkg.bestValue && !soldOut && (
+                                         <span className="absolute -top-2 -right-2 px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full">
+                                             TIẾT KIỆM
+                                         </span>
+                                     )}
+                                     
+                                     <div className="flex items-start gap-3">
+                                         <div className={`p-2 rounded-xl bg-gradient-to-br ${pkg.color} text-white shrink-0 ${soldOut ? 'grayscale' : ''}`}>
+                                             {pkg.icon}
+                                         </div>
+                                         <div className="flex-1 min-w-0">
+                                             <div className="flex items-center justify-between gap-2">
+                                                 <h4 className={`font-bold text-sm truncate ${soldOut ? 'text-gray-500' : 'text-white'}`}>{pkg.name}</h4>
+                                                 <div className="text-right shrink-0">
+                                                     <span className={`font-bold ${soldOut ? 'text-gray-500' : 'text-cyan-400'}`}>{pkg.priceDisplay}</span>
+                                                     {pkg.originalPrice && (
+                                                         <span className="text-xs text-gray-500 line-through ml-1">{pkg.originalPrice}</span>
+                                                     )}
+                                                 </div>
+                                             </div>
+                                             <p className={`text-xs mt-1 ${soldOut ? 'text-gray-600' : 'text-gray-400'}`}>{pkg.description}</p>
+                                             
+                                             {/* Hiển thị số lượng còn lại nếu ít */}
+                                             {stock > 0 && stock <= 5 && !soldOut && (
+                                                 <p className="text-[10px] text-orange-400 mt-1">Chỉ còn {stock}</p>
+                                             )}
+                                         </div>
                                      </div>
+                                     
+                                     {selectedPackage?.id === pkg.id && !soldOut && (
+                                         <div className="absolute top-2 left-2">
+                                             <IconCheckCircle className="w-5 h-5 text-cyan-400 fill-cyan-400/20" />
+                                         </div>
+                                     )}
                                  </div>
-                                 
-                                 {selectedPackage?.id === pkg.id && (
-                                     <div className="absolute top-2 left-2">
-                                         <IconCheckCircle className="w-5 h-5 text-cyan-400 fill-cyan-400/20" />
-                                     </div>
-                                 )}
-                             </div>
-                         ))}
+                             );
+                         })}
                      </div>
                  </div>
              );
          };
          
-         // GIAI ĐOẠN 1 & 2: Course Card với Lazy Loading + Skeleton + Optimized Image
-         const CourseCard = ({ course, index, onBuy }) => {
+         // Course Card với Lazy Loading + Skeleton + Optimized Image + Package Stock
+         const CourseCard = ({ course, index, onBuy, isLoadingStock }) => {
              const [isHovered, setIsHovered] = useState(false);
              const [showPackages, setShowPackages] = useState(false);
              const [selectedPackage, setSelectedPackage] = useState(null);
              const [imageLoaded, setImageLoaded] = useState(false);
              
              const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
-             const isSoldOut = course.quantity === 0;
+             
+             // Kiểm tra xem tất cả các gói đều hết hàng không
+             const isAllPackagesSoldOut = useMemo(() => {
+                 if (!course.packageStock) return false;
+                 return Object.values(course.packageStock).every(stock => stock === 0);
+             }, [course.packageStock]);
+             
+             const isSoldOut = isAllPackagesSoldOut;
              const isLoading = course.quantity === -1;
 
              const handleBuyClick = () => {
@@ -1187,21 +1242,21 @@
                  }
              };
 
-             // GIAI ĐOẠN 1: Tối ưu URL ảnh
+             // Tối ưu URL ảnh
              const optimizedImage = optimizeImageUrl(course.image, 600, 80);
 
              return (
                  <RevealOnScroll delay={index * 150}>
                      <GlassCard className="group h-full flex flex-col">
-                         {/* GIAI ĐOẠN 1: Container có aspect-ratio cố định tránh Layout Shift */}
+                         {/* Container có aspect-ratio cố định tránh Layout Shift */}
                          <div className={`course-image-container rounded-t-[2.5rem] ${isSoldOut ? 'sold-out-overlay' : ''}`} 
                               onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
                              <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
                              
-                             {/* GIAI ĐOẠN 2: Skeleton khi ảnh chưa load */}
+                             {/* Skeleton khi ảnh chưa load */}
                              {!imageLoaded && <div className="absolute inset-0 skeleton" />}
                              
-                             {/* GIAI ĐOẠN 1: Lazy Loading với loading="lazy" */}
+                             {/* Lazy Loading với loading="lazy" */}
                              <img 
                                  src={optimizedImage} 
                                  alt={course.title} 
@@ -1263,7 +1318,13 @@
                              </div>
                              
                              <div className="mb-3">
-                                 <StockBadge quantity={course.quantity} />
+                                 {isSoldOut ? (
+                                     <span className="text-xs text-red-400 font-bold">Tất cả gói đã hết hàng</span>
+                                 ) : isLoading ? (
+                                     <span className="text-xs text-gray-500 flex items-center gap-1"><IconLoader className="w-3 h-3 animate-spin" /> Đang tải...</span>
+                                 ) : (
+                                     <span className="text-xs text-green-400">Còn hàng</span>
+                                 )}
                              </div>
                              
                              {/* Nút chọn gói hoặc hiển thị gói */}
@@ -1297,7 +1358,12 @@
                                  </div>
                              ) : (
                                  <div className="pt-3 border-t border-white/10 space-y-3">
-                                     <PackageSelector selectedPackage={selectedPackage} onSelect={setSelectedPackage} />
+                                     <PackageSelector 
+                                         selectedPackage={selectedPackage} 
+                                         onSelect={setSelectedPackage} 
+                                         packageStock={course.packageStock}
+                                         isLoading={isLoadingStock}
+                                     />
                                      
                                      <div className="flex gap-2">
                                          <button 
@@ -1329,11 +1395,9 @@
              const isSoldOut = account.quantity === 0;
              const isLoading = account.quantity === -1;
              
-             // GIAI ĐOẠN 2: Phản hồi xúc giác khi bấm nút
              const handleBuyWithFeedback = () => {
                  if (isSoldOut || isLoading || isSubmitting) return;
                  setIsSubmitting(true);
-                 // Simulate brief delay for feedback
                  setTimeout(() => {
                      onBuy(account, null);
                      setIsSubmitting(false);
@@ -1541,7 +1605,6 @@
                                 clearInterval(interval);
                                 fetchInventory();
                             } else if (data.status === 'partial') {
-                                // Xử lý trường hợp chuyển thiếu
                                 setOrderError(`Số tiền chuyển khoản chưa đủ. Vui lòng chuyển thêm ${data.remaining?.toLocaleString('vi-VN')}đ hoặc liên hệ hỗ trợ.`);
                             }
                         } catch (e) { console.error("Polling error", e); }
@@ -1558,6 +1621,7 @@
                 } catch (e) { console.error(e); }
             };
 
+            // HÀM FETCH INVENTORY - CẬP NHẬT ĐỂ LẤY TỒN KHO TỪNG GÓI
             const fetchInventory = async () => {
                 setIsLoadingStock(true);
                 try {
@@ -1566,32 +1630,79 @@
                     const data = await res.json();
                     
                     if (Array.isArray(data) && data.length > 0) {
-                        const updateFromSheet = (localList) => localList.map(localItem => {
+                        // Hàm cập nhật tồn kho cho đề thi (có packageStock)
+                        const updateCourseFromSheet = (localList) => localList.map(localItem => {
                             const sheetItem = data.find(i => String(i.id) === String(localItem.id));
-                            return sheetItem ? { ...localItem, quantity: parseInt(sheetItem.quantity) || 0 } : { ...localItem, quantity: localItem.quantity === -1 ? 0 : localItem.quantity };
+                            
+                            if (sheetItem) {
+                                // Tạo object chứa tồn kho từng gói
+                                const packageStock = {
+                                    pdf: sheetItem.pdf !== undefined ? parseInt(sheetItem.pdf) : 999, 
+                                    quiz1: sheetItem.quiz1 !== undefined ? parseInt(sheetItem.quiz1) : 999,
+                                    quiz6: sheetItem.quiz6 !== undefined ? parseInt(sheetItem.quiz6) : 999,
+                                    quiz10: sheetItem.quiz10 !== undefined ? parseInt(sheetItem.quiz10) : 999,
+                                    combo: sheetItem.combo !== undefined ? parseInt(sheetItem.combo) : 999,
+                                };
+                                return { ...localItem, quantity: parseInt(sheetItem.quantity) || 999, packageStock };
+                            }
+                            // Nếu không tìm thấy trong sheet, giữ nguyên mặc định còn hàng
+                            return { ...localItem, quantity: 999, packageStock: { pdf: 999, quiz1: 999, quiz6: 999, quiz10: 999, combo: 999 } };
                         });
-                        setGiuaKi(prev => updateFromSheet(prev));
-                        setCuoiKi(prev => updateFromSheet(prev));
-                        setApps(prev => updateFromSheet(prev));
-                        setSourceCode(prev => updateFromSheet(prev));
+
+                        // Hàm cập nhật cho App/SourceCode (vẫn dùng cột quantity tổng)
+                        const updateSimpleFromSheet = (localList) => localList.map(localItem => {
+                            const sheetItem = data.find(i => String(i.id) === String(localItem.id));
+                            return sheetItem 
+                                ? { ...localItem, quantity: parseInt(sheetItem.quantity) || 0 } 
+                                : { ...localItem, quantity: localItem.quantity === -1 ? 999 : localItem.quantity };
+                        });
+
+                        setGiuaKi(prev => updateCourseFromSheet(prev));
+                        setCuoiKi(prev => updateCourseFromSheet(prev));
+                        setApps(prev => updateSimpleFromSheet(prev));
+                        setSourceCode(prev => updateSimpleFromSheet(prev));
                     } else {
-                        setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                        setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                        setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                        setSourceCode(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                        // Fallback nếu không có data
+                        const setDefaultStock = (list, withPackage = false) => list.map(item => ({
+                            ...item, 
+                            quantity: item.quantity === -1 ? 999 : item.quantity,
+                            ...(withPackage && { packageStock: { pdf: 999, quiz1: 999, quiz6: 999, quiz10: 999, combo: 999 } })
+                        }));
+                        setGiuaKi(prev => setDefaultStock(prev, true));
+                        setCuoiKi(prev => setDefaultStock(prev, true));
+                        setApps(prev => setDefaultStock(prev));
+                        setSourceCode(prev => setDefaultStock(prev));
                     }
                 } catch (e) { 
-                    setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                    setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                    setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
-                    setSourceCode(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                    console.error("Fetch inventory error:", e);
+                    // Fallback khi lỗi
+                    const setDefaultStock = (list, withPackage = false) => list.map(item => ({
+                        ...item, 
+                        quantity: item.quantity === -1 ? 999 : item.quantity,
+                        ...(withPackage && { packageStock: { pdf: 999, quiz1: 999, quiz6: 999, quiz10: 999, combo: 999 } })
+                    }));
+                    setGiuaKi(prev => setDefaultStock(prev, true));
+                    setCuoiKi(prev => setDefaultStock(prev, true));
+                    setApps(prev => setDefaultStock(prev));
+                    setSourceCode(prev => setDefaultStock(prev));
                 } finally {
                     setIsLoadingStock(false);
                 }
             };
 
             const handleBuyClick = (product, pkg) => {
-                if (product.quantity <= 0) { alert("Sản phẩm này đã hết hàng!"); return; }
+                // Kiểm tra tồn kho của gói cụ thể (nếu có)
+                if (pkg && product.packageStock) {
+                    const pkgStock = product.packageStock[pkg.stockKey];
+                    if (pkgStock !== undefined && pkgStock === 0) {
+                        alert("Gói này đã hết hàng!");
+                        return;
+                    }
+                } else if (product.quantity <= 0) {
+                    alert("Sản phẩm này đã hết hàng!");
+                    return;
+                }
+                
                 if(product.isContact) {
                     document.getElementById('lien-he')?.scrollIntoView({ behavior: 'smooth' });
                 } else {
@@ -1661,7 +1772,7 @@
                             packageId: selectedPackage?.id || 'app',
                             price: getTotalPrice(), 
                             quantity: orderForm.quantity,
-                            expectedAmount: getTotalPrice() // Thêm số tiền kỳ vọng để đối chiếu
+                            expectedAmount: getTotalPrice()
                         })
                     });
                     setOrderStep(2); 
@@ -1824,7 +1935,7 @@
                         </RevealOnScroll>
                     </section>
 
-                    {/* Pricing Overview - ĐÃ SỬA BANNER CHÉO */}
+                    {/* Pricing Overview */}
                     <section className="relative z-10 py-16 px-4">
                         <div className="max-w-5xl mx-auto">
                             <RevealOnScroll>
@@ -1923,7 +2034,7 @@
                             </div>
                         </RevealOnScroll>
                         
-                        {/* GIAI ĐOẠN 2: Skeleton Loading khi đang tải */}
+                        {/* Skeleton Loading khi đang tải */}
                         {isLoadingStock ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {[1,2,3].map(i => <SkeletonCard key={i} />)}
@@ -1931,7 +2042,7 @@
                         ) : filteredGiuaKi.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {filteredGiuaKi.map((course, idx) => (
-                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
+                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} isLoadingStock={isLoadingStock} />
                                 ))}
                             </div>
                         ) : (
@@ -1974,7 +2085,7 @@
                         ) : filteredCuoiKi.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {filteredCuoiKi.map((course, idx) => (
-                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
+                                    <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} isLoadingStock={isLoadingStock} />
                                 ))}
                             </div>
                         ) : (
@@ -2164,12 +2275,11 @@
                                             </p>
                                         </div>
                                         
-                                        {/* Sửa lại loading nhỏ gọn hơn */}
-<div className="flex flex-col items-center justify-center gap-3 mt-6">
-    {/* w-10 h-10 tương đương 40px, bạn có thể sửa thành w-8 h-8 nếu muốn nhỏ hơn */}
-    <IconLoader className="animate-spin text-cyan-400 w-10 h-10" /> 
-    <span className="text-sm text-cyan-400 animate-pulse">Đang chờ thanh toán...</span>
-</div>
+                                        {/* Loading nhỏ gọn */}
+                                        <div className="flex flex-col items-center justify-center gap-3 mt-6">
+                                            <IconLoader className="animate-spin text-cyan-400 w-10 h-10" /> 
+                                            <span className="text-sm text-cyan-400 animate-pulse">Đang chờ thanh toán...</span>
+                                        </div>
                                         <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">Quay lại</button>
                                     </div>
                                 ) : (
@@ -2288,7 +2398,7 @@
                         </div>
                     </section>
 
-                    {/* FEATURES - ĐÃ CHUYỂN XUỐNG TRƯỚC LIÊN HỆ */}
+                    {/* FEATURES */}
                     <section className="relative z-10 py-16">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <RevealOnScroll>
