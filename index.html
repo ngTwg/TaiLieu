@@ -3,7 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AstroMind - Khai Phá Tri Thức Vũ Trụ</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>AstroMind - Khai Phá Tri Thức Vũ Trụ | Đề Thi & Tài Liệu Học Tập</title>
+    <meta name="description" content="AstroMind - Nền tảng tài liệu học tập #1 Việt Nam. Đề thi Giữa kì, Cuối kì chất lượng cao và tài khoản Premium với giá tốt nhất.">
+    <meta name="keywords" content="đề thi giữa kì, đề thi cuối kì, tài liệu học tập, toán cao cấp, vật lý đại cương, lập trình C++, ChatGPT, Canva Pro">
+    <meta name="author" content="AstroMind">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://astromind.vn/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://astromind.vn/">
+    <meta property="og:title" content="AstroMind - Khai Phá Tri Thức Vũ Trụ">
+    <meta property="og:description" content="Nền tảng tài liệu học tập #1 Việt Nam. Đề thi chất lượng cao và tài khoản Premium.">
+    <meta property="og:image" content="https://astromind.vn/og-image.jpg">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:site_name" content="AstroMind">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://astromind.vn/">
+    <meta name="twitter:title" content="AstroMind - Khai Phá Tri Thức Vũ Trụ">
+    <meta name="twitter:description" content="Nền tảng tài liệu học tập #1 Việt Nam.">
+    <meta name="twitter:image" content="https://astromind.vn/twitter-image.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "AstroMind",
+        "description": "Nền tảng tài liệu học tập #1 Việt Nam",
+        "url": "https://astromind.vn",
+        "logo": "https://astromind.vn/logo.png",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer service",
+            "availableLanguage": "Vietnamese"
+        }
+    }
+    </script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,11 +60,15 @@
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font hỗ trợ tiếng Việt tốt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Outfit', sans-serif; }
+        body { 
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        }
         
         @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .animate-marquee { animation: marquee 40s linear infinite; }
@@ -102,6 +151,52 @@
         .package-card.popular {
             border-color: rgba(168, 85, 247, 0.5);
         }
+        
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal-content {
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 100%;
+        }
+        
+        /* Legal page styles */
+        .legal-content h3 {
+            color: #22d3ee;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .legal-content p {
+            color: #9ca3af;
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+        
+        .legal-content ul {
+            list-style: disc;
+            margin-left: 1.5rem;
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+        
+        .legal-content li {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-black text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
@@ -146,6 +241,15 @@
         const IconPlayCircle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>;
         const IconPackage = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>;
         const IconTag = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>;
+        const IconCode = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>;
+        const IconGithub = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>;
+        const IconExternalLink = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></svg>;
+        const IconFileCode = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>;
+        const IconScale = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>;
+        const IconLock = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+        const IconRotateCcw = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
+        const IconMail = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>;
+        const IconAlertTriangle = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>;
         
         // Brand Icons
         const IconZalo = (props) => (
@@ -461,6 +565,58 @@
             }
         ];
 
+        // Source Code & Projects Data
+        const SOURCE_CODE_DATA = [
+            {
+                id: 'sc1',
+                title: "Website Bán Đề Thi",
+                description: "Template website bán đề thi/tài liệu với React + Tailwind CSS. Tích hợp thanh toán QR, quản lý đơn hàng qua Google Sheets.",
+                price: "500.000đ",
+                priceVal: 500000,
+                icon: <IconCode className="w-8 h-8 text-cyan-400" />,
+                color: "from-cyan-500 to-blue-600",
+                features: ["React + Tailwind", "Google Sheets API", "QR Payment", "Full Source"],
+                demoLink: "#",
+                quantity: -1
+            },
+            {
+                id: 'sc2',
+                title: "Bot Telegram Auto Reply",
+                description: "Bot Telegram tự động trả lời, quản lý đơn hàng, gửi thông báo thanh toán.",
+                price: "300.000đ",
+                priceVal: 300000,
+                icon: <IconSend className="w-8 h-8 text-blue-400" />,
+                color: "from-blue-500 to-indigo-600",
+                features: ["Python/Node.js", "Auto Reply", "Order Management", "Payment Notification"],
+                demoLink: "#",
+                quantity: -1
+            },
+            {
+                id: 'sc3',
+                title: "Landing Page Template",
+                description: "Template Landing Page đẹp mắt, responsive, tối ưu SEO cho mọi ngành nghề.",
+                price: "200.000đ",
+                priceVal: 200000,
+                icon: <IconFileCode className="w-8 h-8 text-purple-400" />,
+                color: "from-purple-500 to-pink-600",
+                features: ["HTML/CSS/JS", "SEO Optimized", "Mobile First", "Easy Customize"],
+                demoLink: "#",
+                quantity: -1
+            },
+            {
+                id: 'sc4',
+                title: "Yêu Cầu Custom Project",
+                description: "Nhận làm dự án theo yêu cầu: Website, App, Bot, Tool tự động hóa...",
+                price: "Liên hệ",
+                priceVal: 0,
+                icon: <IconHelpCircle className="w-8 h-8 text-amber-400" />,
+                color: "from-amber-500 to-orange-500",
+                features: ["Tư vấn miễn phí", "Báo giá nhanh", "Hỗ trợ kỹ thuật"],
+                isContact: true,
+                quantity: 999
+            }
+        ];
+
         const STATS = [
             { icon: <IconUsers />, value: "10,000+", label: "Học viên", color: "from-cyan-400 to-blue-500" },
             { icon: <IconBookOpen />, value: "50+", label: "Bộ đề", color: "from-purple-400 to-pink-500" },
@@ -482,6 +638,150 @@
         ];
 
         const DEFAULT_REVIEWS = [];
+
+        // Legal Content
+        const LEGAL_PAGES = {
+            terms: {
+                title: "Điều Khoản Sử Dụng",
+                icon: <IconScale className="w-6 h-6" />,
+                content: `
+                    <h3>1. Giới Thiệu</h3>
+                    <p>Chào mừng bạn đến với AstroMind. Khi sử dụng dịch vụ của chúng tôi, bạn đồng ý tuân thủ các điều khoản và điều kiện sau đây.</p>
+                    
+                    <h3>2. Định Nghĩa</h3>
+                    <p>"Dịch vụ" bao gồm tất cả các sản phẩm số, tài liệu học tập, đề thi, tài khoản phần mềm được cung cấp trên nền tảng AstroMind.</p>
+                    <p>"Người dùng" là cá nhân hoặc tổ chức sử dụng dịch vụ của AstroMind.</p>
+                    
+                    <h3>3. Quyền và Nghĩa Vụ</h3>
+                    <ul>
+                        <li>Người dùng cam kết sử dụng dịch vụ đúng mục đích học tập cá nhân.</li>
+                        <li>Không được chia sẻ, phát tán, bán lại tài liệu cho bên thứ ba.</li>
+                        <li>Không được sử dụng tài khoản được cung cấp cho mục đích thương mại.</li>
+                        <li>AstroMind có quyền từ chối cung cấp dịch vụ nếu phát hiện vi phạm.</li>
+                    </ul>
+                    
+                    <h3>4. Thanh Toán</h3>
+                    <p>Thanh toán được thực hiện qua chuyển khoản ngân hàng với nội dung chuyển khoản theo hướng dẫn. Đơn hàng sẽ được xử lý tự động sau khi thanh toán thành công.</p>
+                    
+                    <h3>5. Về Tài Khoản/App Bên Thứ 3</h3>
+                    <p>Đối với các sản phẩm là tài khoản hoặc ứng dụng từ bên thứ 3 (Google, ChatGPT, Canva...):</p>
+                    <ul>
+                        <li>AstroMind cung cấp với tư cách đại lý/reseller được ủy quyền hoặc thông qua các chương trình hợp pháp.</li>
+                        <li>Chúng tôi không chịu trách nhiệm nếu tài khoản bị khóa do vi phạm điều khoản của nhà cung cấp gốc.</li>
+                        <li>Người dùng cần tuân thủ điều khoản sử dụng của từng nền tảng.</li>
+                    </ul>
+                    
+                    <h3>6. Giới Hạn Trách Nhiệm</h3>
+                    <p>AstroMind không chịu trách nhiệm về kết quả học tập, điểm số của người dùng sau khi sử dụng tài liệu.</p>
+                    
+                    <h3>7. Thay Đổi Điều Khoản</h3>
+                    <p>AstroMind có quyền cập nhật điều khoản bất cứ lúc nào. Người dùng sẽ được thông báo qua email khi có thay đổi quan trọng.</p>
+                `
+            },
+            privacy: {
+                title: "Chính Sách Bảo Mật",
+                icon: <IconLock className="w-6 h-6" />,
+                content: `
+                    <h3>1. Thông Tin Thu Thập</h3>
+                    <p>Chúng tôi thu thập các thông tin sau để xử lý đơn hàng và cung cấp dịch vụ:</p>
+                    <ul>
+                        <li><strong>Họ và tên:</strong> Để xác định người mua và giao dịch.</li>
+                        <li><strong>Email:</strong> Để gửi tài liệu, thông tin tài khoản và thông báo đơn hàng.</li>
+                        <li><strong>Số điện thoại:</strong> Để liên hệ khi cần thiết và hỗ trợ khách hàng.</li>
+                    </ul>
+                    
+                    <h3>2. Mục Đích Sử Dụng</h3>
+                    <p>Thông tin của bạn được sử dụng cho các mục đích:</p>
+                    <ul>
+                        <li>Xử lý và giao đơn hàng</li>
+                        <li>Gửi email xác nhận thanh toán và tài liệu</li>
+                        <li>Hỗ trợ khách hàng khi có vấn đề</li>
+                        <li>Gửi thông báo về khuyến mãi, cập nhật dịch vụ (có thể từ chối)</li>
+                    </ul>
+                    
+                    <h3>3. Bảo Vệ Thông Tin</h3>
+                    <p>Chúng tôi cam kết:</p>
+                    <ul>
+                        <li>Không bán, cho thuê thông tin cá nhân cho bên thứ 3</li>
+                        <li>Mã hóa dữ liệu quan trọng trong quá trình truyền tải</li>
+                        <li>Hạn chế quyền truy cập vào dữ liệu cá nhân</li>
+                        <li>Lưu trữ dữ liệu trên các nền tảng bảo mật (Google Sheets với quyền riêng tư)</li>
+                    </ul>
+                    
+                    <h3>4. Quyền Của Người Dùng</h3>
+                    <p>Bạn có quyền:</p>
+                    <ul>
+                        <li>Yêu cầu xem thông tin cá nhân chúng tôi lưu trữ</li>
+                        <li>Yêu cầu xóa thông tin cá nhân (sau khi hoàn tất giao dịch)</li>
+                        <li>Từ chối nhận email marketing</li>
+                        <li>Khiếu nại về việc xử lý dữ liệu</li>
+                    </ul>
+                    
+                    <h3>5. Lưu Trữ Dữ Liệu</h3>
+                    <p>Thông tin đơn hàng được lưu trữ trong vòng 12 tháng để phục vụ hỗ trợ và bảo hành. Sau đó có thể được xóa hoặc ẩn danh hóa.</p>
+                    
+                    <h3>6. Liên Hệ</h3>
+                    <p>Nếu có thắc mắc về chính sách bảo mật, vui lòng liên hệ qua Zalo hoặc email trong phần Liên hệ.</p>
+                `
+            },
+            refund: {
+                title: "Chính Sách Hoàn Tiền",
+                icon: <IconRotateCcw className="w-6 h-6" />,
+                content: `
+                    <h3>1. Điều Kiện Hoàn Tiền</h3>
+                    <p>AstroMind cam kết hoàn tiền trong các trường hợp sau:</p>
+                    <ul>
+                        <li><strong>Lỗi hệ thống:</strong> Thanh toán thành công nhưng không nhận được sản phẩm trong 24 giờ.</li>
+                        <li><strong>Sản phẩm lỗi:</strong> File không mở được, tài khoản không hoạt động ngay từ đầu.</li>
+                        <li><strong>Chuyển nhầm/thừa tiền:</strong> Số tiền chuyển không đúng với giá trị đơn hàng.</li>
+                    </ul>
+                    
+                    <h3>2. Quy Trình Hoàn Tiền</h3>
+                    <ul>
+                        <li>Liên hệ hỗ trợ trong vòng 24 giờ kể từ khi thanh toán</li>
+                        <li>Cung cấp: Mã đơn hàng, ảnh chụp màn hình giao dịch, mô tả vấn đề</li>
+                        <li>Đợi xác minh (tối đa 48 giờ làm việc)</li>
+                        <li>Hoàn tiền về tài khoản ngân hàng trong 3-5 ngày làm việc</li>
+                    </ul>
+                    
+                    <h3>3. Trường Hợp KHÔNG Hoàn Tiền</h3>
+                    <ul>
+                        <li>Đã tải/sử dụng tài liệu (do bản chất sản phẩm số)</li>
+                        <li>Tài khoản bị khóa do vi phạm điều khoản của nhà cung cấp gốc</li>
+                        <li>Đổi ý sau khi mua</li>
+                        <li>Không liên hệ trong thời hạn quy định (24 giờ)</li>
+                        <li>Cung cấp thông tin sai (email, số điện thoại)</li>
+                    </ul>
+                    
+                    <h3>4. Xử Lý Chuyển Thiếu Tiền</h3>
+                    <p>Nếu số tiền chuyển khoản ít hơn giá trị đơn hàng:</p>
+                    <ul>
+                        <li>Đơn hàng sẽ được giữ lại, không xử lý tự động</li>
+                        <li>Khách hàng sẽ được thông báo qua email</li>
+                        <li>Có thể chuyển bổ sung hoặc yêu cầu hoàn tiền</li>
+                        <li>Nếu không phản hồi trong 7 ngày, số tiền sẽ được hoàn về tài khoản gốc</li>
+                    </ul>
+                    
+                    <h3>5. Xử Lý Chuyển Thừa Tiền</h3>
+                    <p>Nếu số tiền chuyển khoản nhiều hơn giá trị đơn hàng:</p>
+                    <ul>
+                        <li>Đơn hàng vẫn được xử lý bình thường</li>
+                        <li>Số tiền thừa sẽ được hoàn lại trong 3-5 ngày làm việc</li>
+                        <li>Hoặc có thể yêu cầu giữ làm credit cho lần mua sau</li>
+                    </ul>
+                    
+                    <h3>6. Bảo Hành Tài Khoản</h3>
+                    <p>Đối với sản phẩm là tài khoản:</p>
+                    <ul>
+                        <li>Bảo hành 7 ngày cho lỗi từ phía nhà cung cấp (không đăng nhập được, bị khóa không rõ lý do)</li>
+                        <li>Không bảo hành nếu: Vi phạm ToS, chia sẻ cho người khác, sử dụng cho mục đích spam/lừa đảo</li>
+                    </ul>
+                    
+                    <h3>7. Liên Hệ Hoàn Tiền</h3>
+                    <p>Để yêu cầu hoàn tiền, vui lòng liên hệ qua Zalo hoặc gửi email kèm đầy đủ thông tin.</p>
+                `
+            }
+        };
 
         // --- COMPONENTS ---
         
@@ -649,6 +949,42 @@
              );
          };
 
+         // Modal Component cho Legal Pages
+         const LegalModal = ({ isOpen, onClose, pageKey }) => {
+             if (!isOpen || !pageKey) return null;
+             
+             const page = LEGAL_PAGES[pageKey];
+             if (!page) return null;
+
+             return (
+                 <div className="modal-overlay" onClick={onClose}>
+                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                         <GlassCard className="p-6 md:p-8" hover={false}>
+                             <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                                 <div className="flex items-center gap-3">
+                                     <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400">
+                                         {page.icon}
+                                     </div>
+                                     <h2 className="text-xl md:text-2xl font-bold text-white">{page.title}</h2>
+                                 </div>
+                                 <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                                     <IconX className="w-6 h-6" />
+                                 </button>
+                             </div>
+                             
+                             <div className="legal-content max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide" dangerouslySetInnerHTML={{ __html: page.content }} />
+                             
+                             <div className="mt-6 pt-4 border-t border-white/10 text-center">
+                                 <button onClick={onClose} className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-full text-white font-medium transition-colors">
+                                     Đã hiểu
+                                 </button>
+                             </div>
+                         </GlassCard>
+                     </div>
+                 </div>
+             );
+         };
+
          // Component hiển thị gói sản phẩm
          const PackageSelector = ({ selectedPackage, onSelect }) => {
              const packages = Object.values(PACKAGE_CONFIG);
@@ -712,7 +1048,7 @@
              );
          };
          
-         // Course Card mới với nút chọn gói
+         // Course Card với nút chọn gói
          const CourseCard = ({ course, index, onBuy }) => {
              const [isHovered, setIsHovered] = useState(false);
              const [showPackages, setShowPackages] = useState(false);
@@ -888,6 +1224,60 @@
              );
          };
 
+         // Source Code Card Component
+         const SourceCodeCard = ({ item, index, onBuy }) => {
+             const isSoldOut = item.quantity === 0;
+             const isLoading = item.quantity === -1;
+             
+             return (
+                 <RevealOnScroll delay={index * 100}>
+                     <GlassCard className={`group h-full flex flex-col p-6 ${isSoldOut ? 'opacity-60' : ''}`}>
+                         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white mb-4 shadow-lg ${isSoldOut ? 'grayscale' : ''}`}>
+                             {item.icon}
+                         </div>
+                         <h3 className={`text-xl font-bold text-white mb-2 ${isSoldOut ? 'text-gray-400' : ''}`}>{item.title}</h3>
+                         <p className="text-gray-400 text-sm mb-4 flex-1">{item.description}</p>
+                         
+                         <div className="flex flex-wrap gap-2 mb-4">
+                             {item.features.map((f, i) => (
+                                 <span key={i} className="px-2 py-1 text-xs rounded-full bg-white/5 text-gray-300 border border-white/10">
+                                     {f}
+                                 </span>
+                             ))}
+                         </div>
+                         
+                         {!item.isContact && (
+                             <div className="mb-3"><StockBadge quantity={item.quantity} /></div>
+                         )}
+                         
+                         <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
+                             <span className={`text-xl font-bold ${isSoldOut ? 'text-gray-500' : (item.isContact ? 'text-amber-400' : 'text-white')}`}>{item.price}</span>
+                             <div className="flex gap-2">
+                                 {item.demoLink && !item.isContact && (
+                                     <a href={item.demoLink} target="_blank" rel="noopener noreferrer"
+                                        className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center gap-1 text-sm transition-colors">
+                                         <IconExternalLink size={14} />
+                                         Demo
+                                     </a>
+                                 )}
+                                 <button onClick={() => !isSoldOut && !isLoading && onBuy(item, null)}
+                                    disabled={isSoldOut || isLoading}
+                                    className={`px-5 py-2 rounded-full font-medium flex items-center gap-2 text-sm ${
+                                        isSoldOut ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                                        : isLoading ? 'bg-gray-700 text-gray-400 cursor-wait'
+                                        : item.isContact ? 'bg-amber-600 hover:bg-amber-500' 
+                                        : `bg-gradient-to-r ${item.color} hover:opacity-90`
+                                    } text-white`}>
+                                     {item.isContact ? <IconPhone size={14} /> : isSoldOut ? null : isLoading ? <IconLoader size={14} className="animate-spin" /> : <IconShoppingCart size={14} />}
+                                     {isSoldOut ? 'Hết' : isLoading ? '...' : (item.isContact ? 'Liên hệ' : 'Mua')}
+                                 </button>
+                             </div>
+                         </div>
+                     </GlassCard>
+                 </RevealOnScroll>
+             );
+         };
+
          const ReviewCard = ({ review }) => (
              <GlassCard className="w-[320px] md:w-[380px] shrink-0 mx-3 p-6" hover={false}>
                  <div className="flex justify-between items-start mb-4">
@@ -921,6 +1311,7 @@
             const [giuaKi, setGiuaKi] = useState(GIUAKI_DATA);
             const [cuoiKi, setCuoiKi] = useState(CUOIKI_DATA);
             const [apps, setApps] = useState(ACCOUNTS_DATA);
+            const [sourceCode, setSourceCode] = useState(SOURCE_CODE_DATA);
             const [isLoadingStock, setIsLoadingStock] = useState(true);
 
             const [selectedProduct, setSelectedProduct] = useState(null);
@@ -936,7 +1327,10 @@
             const [reviews, setReviews] = useState(DEFAULT_REVIEWS);
             const [fbForm, setFbForm] = useState({ name: '', email: '', message: '', rating: 5, type: 'Mua đề thi' });
             const [isSubmitting, setIsSubmitting] = useState(false);
-            const [paidKey, setPaidKey] = useState(null); 
+            const [paidKey, setPaidKey] = useState(null);
+            
+            // Legal modal state
+            const [legalModal, setLegalModal] = useState({ isOpen: false, pageKey: null });
 
             const filteredGiuaKi = useMemo(() => {
                 if (!searchGiuaKi.trim()) return giuaKi;
@@ -983,6 +1377,9 @@
                                 setOrderStep(3); 
                                 clearInterval(interval);
                                 fetchInventory();
+                            } else if (data.status === 'partial') {
+                                // Xử lý trường hợp chuyển thiếu
+                                setOrderError(`Số tiền chuyển khoản chưa đủ. Vui lòng chuyển thêm ${data.remaining?.toLocaleString('vi-VN')}đ hoặc liên hệ hỗ trợ.`);
                             }
                         } catch (e) { console.error("Polling error", e); }
                     }, 3000); 
@@ -1013,15 +1410,18 @@
                         setGiuaKi(prev => updateFromSheet(prev));
                         setCuoiKi(prev => updateFromSheet(prev));
                         setApps(prev => updateFromSheet(prev));
+                        setSourceCode(prev => updateFromSheet(prev));
                     } else {
                         setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                         setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                         setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                        setSourceCode(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                     }
                 } catch (e) { 
                     setGiuaKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                     setCuoiKi(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                     setApps(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
+                    setSourceCode(prev => prev.map(item => ({ ...item, quantity: item.quantity === -1 ? 999 : item.quantity })));
                 } finally {
                     setIsLoadingStock(false);
                 }
@@ -1046,7 +1446,8 @@
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
                 if (!orderForm.name.trim()) return "Vui lòng nhập họ tên.";
-                if (!phoneRegex.test(orderForm.phone)) return "Vui lòng nhập số điện thoại hợp lệ (10 số).";
+                if (orderForm.name.trim().length < 2) return "Họ tên phải có ít nhất 2 ký tự.";
+                if (!phoneRegex.test(orderForm.phone)) return "Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 03, 05, 07, 08, 09).";
                 if (!emailRegex.test(orderForm.email)) return "Vui lòng nhập email hợp lệ.";
                 return null;
             };
@@ -1082,8 +1483,10 @@
                 setGeneratedOrderId(newOrderId);
 
                 try {
-                    await fetch(SCRIPT_URL, {
-                        method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'text/plain' },
                         body: JSON.stringify({ 
                             action: 'create_order', 
                             orderId: newOrderId, 
@@ -1094,11 +1497,14 @@
                             productId: selectedProduct?.id,
                             packageId: selectedPackage?.id || 'app',
                             price: getTotalPrice(), 
-                            quantity: orderForm.quantity 
+                            quantity: orderForm.quantity,
+                            expectedAmount: getTotalPrice() // Thêm số tiền kỳ vọng để đối chiếu
                         })
                     });
                     setOrderStep(2); 
-                } catch (e) { alert("Lỗi kết nối!"); }
+                } catch (e) { 
+                    setOrderError("Lỗi kết nối! Vui lòng thử lại.");
+                }
                 setIsSubmitting(false);
             };
 
@@ -1151,6 +1557,9 @@
             const decrementQuantity = () => setOrderForm(prev => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }));
             const handleInputChange = (e) => { const { name, value } = e.target; setFbForm(prev => ({ ...prev, [name]: value })); };
 
+            const openLegalModal = (pageKey) => setLegalModal({ isOpen: true, pageKey });
+            const closeLegalModal = () => setLegalModal({ isOpen: false, pageKey: null });
+
             return (
                 <div className="min-h-screen bg-[#030712] text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
                     <ParticleField />
@@ -1165,6 +1574,9 @@
                         <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 transition-all duration-150" style={{ width: `${scrollProgress}%` }} />
                     </div>
 
+                    {/* Legal Modal */}
+                    <LegalModal isOpen={legalModal.isOpen} onClose={closeLegalModal} pageKey={legalModal.pageKey} />
+
                     {/* Navbar */}
                     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#030712]/90 backdrop-blur-md border-b border-white/10' : 'bg-transparent'}`}>
                         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -1176,7 +1588,7 @@
                             </div>
 
                             <div className="hidden md:flex gap-6 items-center">
-                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Source Code', 'Tra cứu', 'Liên hệ'].map(item => (
                                     <button key={item} 
                                         onClick={() => document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'})}
                                         className="text-gray-300 hover:text-white text-sm font-medium transition-colors relative group">
@@ -1197,7 +1609,7 @@
                         
                         {isMenuOpen && (
                             <div className="md:hidden bg-[#0A1220] border-t border-white/10 p-4 space-y-3">
-                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Tra cứu', 'Liên hệ'].map(item => (
+                                {['Giữa kì', 'Cuối kì', 'Ứng dụng', 'Source Code', 'Tra cứu', 'Liên hệ'].map(item => (
                                     <button key={item} onClick={() => { document.getElementById(item.toLowerCase().replace(/ /g,'-').replace(/ứ/g,'u').replace(/á/g,'a'))?.scrollIntoView({behavior:'smooth'}); setIsMenuOpen(false); }}
                                         className="block w-full text-left text-gray-300 py-2">{item}</button>
                                 ))}
@@ -1433,6 +1845,26 @@
                         </div>
                     </section>
 
+                    {/* Source Code & Projects Section */}
+                    <section id="source-code" className="py-20 px-4 max-w-7xl mx-auto">
+                        <RevealOnScroll>
+                            <div className="text-center mb-16">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border border-cyan-500/20 mb-4">
+                                    <IconCode className="w-5 h-5 text-cyan-400" />
+                                    <span className="text-sm text-cyan-400 font-medium">Dành cho Developer</span>
+                                </div>
+                                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Source Code & Project</h2>
+                                <p className="text-gray-400 max-w-2xl mx-auto">Mua source code chất lượng hoặc đặt làm dự án theo yêu cầu</p>
+                                <div className="h-1 w-24 bg-gradient-to-r from-cyan-500 to-purple-500 mx-auto rounded-full mt-6" />
+                            </div>
+                        </RevealOnScroll>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {sourceCode.map((item, idx) => (
+                                <SourceCodeCard key={item.id} item={item} index={idx} onBuy={handleBuyClick} />
+                            ))}
+                        </div>
+                    </section>
+
                     {/* ORDER FORM SECTION */}
                     <section id="dat-hang" className={`py-20 px-4 transition-all duration-500 ${selectedProduct ? 'block' : 'hidden'}`}>
                         <div className="max-w-3xl mx-auto">
@@ -1504,6 +1936,13 @@
                                             <input required placeholder="Số điện thoại (10 số)" className="bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={orderForm.phone} onChange={handleOrderChange} name="phone" maxLength={10} />
                                         </div>
                                         <input required type="email" placeholder="Email (Để nhận tài liệu)" className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={orderForm.email} onChange={handleOrderChange} name="email" />
+                                        
+                                        {/* Thông báo về email */}
+                                        <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-sm">
+                                            <IconMail className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                                            <p className="text-blue-300">Tài liệu/tài khoản sẽ được gửi tự động qua email sau khi thanh toán thành công.</p>
+                                        </div>
+                                        
                                         <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 transition-opacity">Tiếp tục</button>
                                     </form>
                                 ) : orderStep === 1.5 ? (
@@ -1523,6 +1962,22 @@
                                                 <p className="flex justify-between"><span className="text-gray-400">Email:</span> <span className="text-white">{orderForm.email}</span></p>
                                             </div>
                                         </div>
+                                        
+                                        {/* Lưu ý quan trọng */}
+                                        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                                            <div className="flex items-start gap-2">
+                                                <IconAlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                                                <div className="text-sm text-amber-200">
+                                                    <p className="font-bold mb-1">Lưu ý quan trọng:</p>
+                                                    <ul className="list-disc ml-4 space-y-1 text-amber-300/80">
+                                                        <li>Vui lòng chuyển <strong>ĐÚNG SỐ TIỀN</strong> và <strong>ĐÚNG NỘI DUNG</strong> chuyển khoản</li>
+                                                        <li>Nếu chuyển thiếu/nhầm, đơn hàng sẽ không được xử lý tự động</li>
+                                                        <li>Liên hệ hỗ trợ trong vòng 24h nếu có vấn đề</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
                                         <div className="flex gap-4">
                                             <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-full font-bold hover:bg-gray-600 text-white">Quay lại</button>
                                             <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 text-white">
@@ -1542,6 +1997,15 @@
                                             <p className="flex justify-between items-center text-yellow-400 border-t border-white/10 pt-2 mt-2"><span>Nội dung CK:</span> <span className="font-bold flex items-center gap-2">{generatedOrderId} <IconCopy size={14} className="cursor-pointer" onClick={() => copyToClipboard(generatedOrderId)}/></span></p>
                                             <p className="flex justify-between pt-2"><span>Số tiền:</span> <span className="font-bold text-green-400">{getTotalPrice().toLocaleString('vi-VN')}đ</span></p>
                                         </div>
+                                        
+                                        {/* Cảnh báo */}
+                                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-left">
+                                            <p className="text-red-300 text-xs flex items-start gap-2">
+                                                <IconAlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                                <span>Chuyển khoản ĐÚNG số tiền <strong>{getTotalPrice().toLocaleString('vi-VN')}đ</strong> và nội dung <strong>{generatedOrderId}</strong>. Nếu sai, hệ thống sẽ không xử lý tự động.</span>
+                                            </p>
+                                        </div>
+                                        
                                         <div className="flex items-center justify-center gap-2 text-sm text-cyan-400 animate-pulse"><IconLoader className="animate-spin" size={16}/> Đang chờ thanh toán...</div>
                                         <button onClick={() => setOrderStep(1)} className="text-gray-400 underline hover:text-white text-xs">Quay lại</button>
                                     </div>
@@ -1553,6 +2017,15 @@
                                             <p className="text-sm text-gray-300 mb-2">Link tài liệu / Tài khoản của bạn:</p>
                                             <div className="text-xl font-mono font-bold text-green-400 break-all select-all whitespace-pre-line">{paidKey}</div>
                                         </div>
+                                        
+                                        {/* Thông báo gửi email */}
+                                        <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl mb-6 text-left">
+                                            <div className="flex items-start gap-2">
+                                                <IconMail className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                                                <p className="text-sm text-blue-300">Thông tin này cũng đã được gửi đến email <strong>{orderForm.email}</strong>. Vui lòng kiểm tra hộp thư (kể cả Spam).</p>
+                                            </div>
+                                        </div>
+                                        
                                         <p className="text-gray-400 text-sm mb-6">Vui lòng lưu lại thông tin này.</p>
                                         <button onClick={() => { setSelectedProduct(null); setSelectedPackage(null); }} className="px-6 py-2 bg-gray-700 hover:bg-gray-600 rounded-full text-white">Đóng</button>
                                     </div>
@@ -1580,8 +2053,12 @@
                                         <div key={i} className="bg-black/30 p-4 rounded-2xl border border-gray-700">
                                             <div className="flex justify-between mb-1">
                                                 <span className="font-bold text-white">{order.product}</span>
-                                                <span className={`text-xs px-2 py-0.5 rounded-full ${order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                                                    {order.status === 'Paid' ? 'Đã thanh toán' : order.status}
+                                                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                                    order.status === 'Đã thanh toán' || order.status === 'Paid' ? 'bg-green-500/20 text-green-400' 
+                                                    : order.status === 'Partial' ? 'bg-orange-500/20 text-orange-400'
+                                                    : 'bg-yellow-500/20 text-yellow-400'
+                                                }`}>
+                                                    {order.status === 'Paid' ? 'Đã thanh toán' : order.status === 'Partial' ? 'Chuyển thiếu' : order.status}
                                                 </span>
                                             </div>
                                             <div className="text-sm text-gray-400 mt-2 p-2 bg-black/40 rounded-xl border border-white/5 break-all font-mono whitespace-pre-line">
@@ -1650,16 +2127,35 @@
 
                     {/* Footer */}
                     <section id="lien-he" className="py-12 border-t border-white/10 bg-[#020612]">
-                        <div className="max-w-7xl mx-auto px-4 text-center">
-                            <h2 className="text-2xl font-bold mb-8 text-white">Kết Nối</h2>
-                            <div className="flex justify-center gap-6 mb-8">
-                                {SOCIAL_LINKS.map((s, i) => (
-                                    <a key={i} href={s.url} className={`p-3 rounded-full bg-gradient-to-r ${s.color} hover:scale-110 transition-transform`}>
-                                        <span className="text-white">{s.icon}</span>
-                                    </a>
-                                ))}
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="text-center mb-8">
+                                <h2 className="text-2xl font-bold mb-8 text-white">Kết Nối</h2>
+                                <div className="flex justify-center gap-6 mb-8">
+                                    {SOCIAL_LINKS.map((s, i) => (
+                                        <a key={i} href={s.url} className={`p-3 rounded-full bg-gradient-to-r ${s.color} hover:scale-110 transition-transform`}>
+                                            <span className="text-white">{s.icon}</span>
+                                        </a>
+                                    ))}
+                                </div>
                             </div>
-                            <p className="text-gray-500 text-sm">© 2024 AstroMind. All rights reserved.</p>
+                            
+                            {/* Legal Links */}
+                            <div className="flex flex-wrap justify-center gap-6 mb-8 text-sm">
+                                <button onClick={() => openLegalModal('terms')} className="text-gray-400 hover:text-cyan-400 flex items-center gap-2 transition-colors">
+                                    <IconScale className="w-4 h-4" />
+                                    Điều khoản sử dụng
+                                </button>
+                                <button onClick={() => openLegalModal('privacy')} className="text-gray-400 hover:text-cyan-400 flex items-center gap-2 transition-colors">
+                                    <IconLock className="w-4 h-4" />
+                                    Chính sách bảo mật
+                                </button>
+                                <button onClick={() => openLegalModal('refund')} className="text-gray-400 hover:text-cyan-400 flex items-center gap-2 transition-colors">
+                                    <IconRotateCcw className="w-4 h-4" />
+                                    Chính sách hoàn tiền
+                                </button>
+                            </div>
+                            
+                            <p className="text-gray-500 text-sm text-center">© 2024 AstroMind. All rights reserved.</p>
                         </div>
                     </section>
                 </div>
