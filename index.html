@@ -60,7 +60,7 @@
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Font hỗ trợ tiếng Việt tốt -->
+    <!-- Font hỗ trợ tiếng Việt tốt - THÊM display=swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -78,7 +78,7 @@
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-10px); }
         }
-        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float { animation: float 6s ease-out infinite; }
         
         @keyframes fade-in-down {
           from { opacity: 0; transform: translateY(-20px); }
@@ -197,13 +197,107 @@
         .legal-content li {
             margin-bottom: 0.5rem;
         }
+
+        /* GIAI ĐOẠN 1: Tránh Layout Shift - Set aspect-ratio cho ảnh */
+        .course-image-container {
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        }
+
+        /* GIAI ĐOẠN 2: Skeleton Loading Animation */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* GIAI ĐOẠN 3: GPU Acceleration với will-change */
+        .glass-card {
+            will-change: transform, opacity;
+        }
+        .animate-float {
+            will-change: transform;
+        }
+        .animate-marquee {
+            will-change: transform;
+        }
+
+        /* Banner chéo góc trái trên */
+        .ribbon-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 85px;
+            height: 85px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        .ribbon {
+            position: absolute;
+            top: 18px;
+            left: -25px;
+            width: 120px;
+            padding: 4px 0;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            transform: rotate(-45deg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .ribbon-popular {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        }
+        .ribbon-best {
+            background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        }
+
+        /* Button loading state */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-black text-gray-100 font-sans selection:bg-cyan-500 selection:text-white overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect, useRef, useMemo, useCallback, memo } = React;
+
+        // --- GIAI ĐOẠN 1: Hàm tối ưu ảnh Unsplash ---
+        const optimizeImageUrl = (url, width = 600, quality = 80) => {
+            if (!url) return '';
+            // Nếu là ảnh Unsplash, thêm params tối ưu
+            if (url.includes('unsplash.com')) {
+                const separator = url.includes('?') ? '&' : '?';
+                return `${url}${separator}w=${width}&q=${quality}&fm=webp&fit=crop`;
+            }
+            return url;
+        };
 
         // --- ICONS ---
         const IconStar = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
@@ -625,10 +719,10 @@
         ];
 
         const FEATURES = [
-            { icon: <IconShield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn" },
-            { icon: <IconZap />, title: "Kích hoạt tức thì", description: "Nhận tài liệu ngay sau khi thanh toán" },
-            { icon: <IconGift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới" },
-            { icon: <IconHeart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7" }
+            { icon: <IconShield />, title: "Bảo mật tuyệt đối", description: "Thông tin được mã hóa và bảo vệ an toàn", color: "from-cyan-500 to-blue-500" },
+            { icon: <IconZap />, title: "Kích hoạt tức thì", description: "Nhận tài liệu ngay sau khi thanh toán", color: "from-amber-500 to-orange-500" },
+            { icon: <IconGift />, title: "Ưu đãi hấp dẫn", description: "Giảm giá lên đến 50% cho học viên mới", color: "from-purple-500 to-pink-500" },
+            { icon: <IconHeart />, title: "Hỗ trợ tận tâm", description: "Đội ngũ support nhiệt tình 24/7", color: "from-rose-500 to-red-500" }
         ];
 
         const SOCIAL_LINKS = [
@@ -785,7 +879,8 @@
 
         // --- COMPONENTS ---
         
-        const ParticleField = () => {
+        // GIAI ĐOẠN 1 & 3: ParticleField với số hạt giảm trên Mobile + React.memo
+        const ParticleField = memo(() => {
              const canvasRef = useRef(null);
              useEffect(() => {
                  const canvas = canvasRef.current;
@@ -795,7 +890,12 @@
                  canvas.height = window.innerHeight;
                  const particles = [];
                  const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b'];
-                 for (let i = 0; i < 100; i++) {
+                 
+                 // GIAI ĐOẠN 1: Giảm số hạt trên mobile
+                 const isMobile = window.innerWidth < 768;
+                 const particleCount = isMobile ? 30 : 80;
+                 
+                 for (let i = 0; i < particleCount; i++) {
                      particles.push({
                          x: Math.random() * canvas.width,
                          y: Math.random() * canvas.height,
@@ -837,9 +937,10 @@
                  };
              }, []);
              return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />;
-         };
+         });
 
-         const ShootingStars = () => {
+         // GIAI ĐOẠN 3: ShootingStars với React.memo
+         const ShootingStars = memo(() => {
             const [stars, setStars] = useState([]);
             useEffect(() => {
                 const interval = setInterval(() => {
@@ -854,7 +955,7 @@
                     {stars.map(star => (<span key={star.id} style={{ top: star.top, left: star.left, animationDelay: star.delay }} />))}
                 </div>
             );
-         };
+         });
 
          const RevealOnScroll = ({ children, delay = 0 }) => {
              const [isVisible, setIsVisible] = useState(false);
@@ -871,8 +972,9 @@
              );
          };
 
+         // GIAI ĐOẠN 3: GlassCard với class will-change
          const GlassCard = ({ children, className = "", hover = true }) => (
-             <div className={`relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
+             <div className={`glass-card relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] ${hover ? 'hover:bg-white/[0.08] hover:border-white/20 hover:shadow-cyan-500/20 transition-all duration-500 hover:-translate-y-2' : ''} ${className}`}>
                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
                  {children}
              </div>
@@ -985,6 +1087,26 @@
              );
          };
 
+         // GIAI ĐOẠN 2: Skeleton Loading Component
+         const SkeletonCard = () => (
+             <div className="glass-card relative backdrop-blur-2xl bg-white/[0.03] border border-white/10 rounded-[2.5rem] overflow-hidden">
+                 <div className="course-image-container skeleton"></div>
+                 <div className="p-5 space-y-3">
+                     <div className="flex justify-between">
+                         <div className="h-4 w-16 skeleton rounded"></div>
+                         <div className="h-4 w-20 skeleton rounded"></div>
+                     </div>
+                     <div className="h-6 w-3/4 skeleton rounded"></div>
+                     <div className="h-4 w-full skeleton rounded"></div>
+                     <div className="h-4 w-2/3 skeleton rounded"></div>
+                     <div className="flex gap-2 pt-3">
+                         <div className="h-10 flex-1 skeleton rounded-full"></div>
+                         <div className="h-10 flex-1 skeleton rounded-full"></div>
+                     </div>
+                 </div>
+             </div>
+         );
+
          // Component hiển thị gói sản phẩm
          const PackageSelector = ({ selectedPackage, onSelect }) => {
              const packages = Object.values(PACKAGE_CONFIG);
@@ -1048,11 +1170,12 @@
              );
          };
          
-         // Course Card với nút chọn gói
+         // GIAI ĐOẠN 1 & 2: Course Card với Lazy Loading + Skeleton + Optimized Image
          const CourseCard = ({ course, index, onBuy }) => {
              const [isHovered, setIsHovered] = useState(false);
              const [showPackages, setShowPackages] = useState(false);
              const [selectedPackage, setSelectedPackage] = useState(null);
+             const [imageLoaded, setImageLoaded] = useState(false);
              
              const badgeColors = { "Bestseller": "from-amber-500 to-orange-500", "Hot": "from-red-500 to-pink-500", "Premium": "from-purple-500 to-indigo-500" };
              const isSoldOut = course.quantity === 0;
@@ -1064,14 +1187,28 @@
                  }
              };
 
+             // GIAI ĐOẠN 1: Tối ưu URL ảnh
+             const optimizedImage = optimizeImageUrl(course.image, 600, 80);
+
              return (
                  <RevealOnScroll delay={index * 150}>
                      <GlassCard className="group h-full flex flex-col">
-                         <div className={`relative h-48 overflow-hidden rounded-t-[2.5rem] ${isSoldOut ? 'sold-out-overlay' : ''}`} 
+                         {/* GIAI ĐOẠN 1: Container có aspect-ratio cố định tránh Layout Shift */}
+                         <div className={`course-image-container rounded-t-[2.5rem] ${isSoldOut ? 'sold-out-overlay' : ''}`} 
                               onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
                              <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-transparent to-transparent z-10" />
-                             <img src={course.image} alt={course.title} 
-                                  className={`w-full h-full object-cover transition-all duration-700 ${isHovered && !isSoldOut ? 'scale-110 blur-sm' : 'scale-100'} ${isSoldOut ? 'grayscale opacity-60' : ''}`} />
+                             
+                             {/* GIAI ĐOẠN 2: Skeleton khi ảnh chưa load */}
+                             {!imageLoaded && <div className="absolute inset-0 skeleton" />}
+                             
+                             {/* GIAI ĐOẠN 1: Lazy Loading với loading="lazy" */}
+                             <img 
+                                 src={optimizedImage} 
+                                 alt={course.title} 
+                                 loading="lazy"
+                                 onLoad={() => setImageLoaded(true)}
+                                 className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isHovered && !isSoldOut ? 'scale-110 blur-sm' : 'scale-100'} ${isSoldOut ? 'grayscale opacity-60' : ''} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                             />
                              
                              {!isSoldOut && !isLoading && (
                                  <a href={course.trialLink} target="_blank" rel="noopener noreferrer" 
@@ -1188,8 +1325,20 @@
          };
 
          const AccountCard = ({ account, index, onBuy }) => {
+             const [isSubmitting, setIsSubmitting] = useState(false);
              const isSoldOut = account.quantity === 0;
              const isLoading = account.quantity === -1;
+             
+             // GIAI ĐOẠN 2: Phản hồi xúc giác khi bấm nút
+             const handleBuyWithFeedback = () => {
+                 if (isSoldOut || isLoading || isSubmitting) return;
+                 setIsSubmitting(true);
+                 // Simulate brief delay for feedback
+                 setTimeout(() => {
+                     onBuy(account, null);
+                     setIsSubmitting(false);
+                 }, 100);
+             };
              
              return (
                  <RevealOnScroll delay={index * 100}>
@@ -1207,16 +1356,18 @@
                          
                          <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-auto">
                              <span className={`text-xl font-bold ${isSoldOut ? 'text-gray-500' : (account.isContact ? 'text-amber-400' : 'text-white')}`}>{account.price}</span>
-                             <button onClick={() => !isSoldOut && !isLoading && onBuy(account, null)}
-                                disabled={isSoldOut || isLoading}
+                             <button 
+                                onClick={handleBuyWithFeedback}
+                                disabled={isSoldOut || isLoading || isSubmitting}
                                 className={`px-5 py-2.5 rounded-full font-medium flex items-center gap-2 ${
                                     isSoldOut ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10' 
                                     : isLoading ? 'bg-gray-700 text-gray-400 cursor-wait'
+                                    : isSubmitting ? 'bg-gray-600 text-gray-300 cursor-wait'
                                     : account.isContact ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20' 
                                     : `bg-gradient-to-r ${account.color} hover:opacity-90 shadow-lg`
-                                } text-white shadow-md`}>
-                                 {account.isContact ? <IconPhone size={16} /> : isSoldOut ? null : isLoading ? <IconLoader size={16} className="animate-spin" /> : <IconShoppingCart size={16} />}
-                                 {isSoldOut ? 'Hết hàng' : isLoading ? '...' : (account.isContact ? 'Liên hệ' : 'Mua')}
+                                } text-white shadow-md transition-all`}>
+                                 {account.isContact ? <IconPhone size={16} /> : isSoldOut ? null : (isLoading || isSubmitting) ? <IconLoader size={16} className="animate-spin" /> : <IconShoppingCart size={16} />}
+                                 {isSoldOut ? 'Hết hàng' : (isLoading || isSubmitting) ? 'Đang xử lý...' : (account.isContact ? 'Liên hệ' : 'Mua')}
                              </button>
                          </div>
                      </GlassCard>
@@ -1226,8 +1377,18 @@
 
          // Source Code Card Component
          const SourceCodeCard = ({ item, index, onBuy }) => {
+             const [isSubmitting, setIsSubmitting] = useState(false);
              const isSoldOut = item.quantity === 0;
              const isLoading = item.quantity === -1;
+             
+             const handleBuyWithFeedback = () => {
+                 if (isSoldOut || isLoading || isSubmitting) return;
+                 setIsSubmitting(true);
+                 setTimeout(() => {
+                     onBuy(item, null);
+                     setIsSubmitting(false);
+                 }, 100);
+             };
              
              return (
                  <RevealOnScroll delay={index * 100}>
@@ -1260,16 +1421,18 @@
                                          Demo
                                      </a>
                                  )}
-                                 <button onClick={() => !isSoldOut && !isLoading && onBuy(item, null)}
-                                    disabled={isSoldOut || isLoading}
+                                 <button 
+                                    onClick={handleBuyWithFeedback}
+                                    disabled={isSoldOut || isLoading || isSubmitting}
                                     className={`px-5 py-2 rounded-full font-medium flex items-center gap-2 text-sm ${
                                         isSoldOut ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
                                         : isLoading ? 'bg-gray-700 text-gray-400 cursor-wait'
+                                        : isSubmitting ? 'bg-gray-600 text-gray-300 cursor-wait'
                                         : item.isContact ? 'bg-amber-600 hover:bg-amber-500' 
                                         : `bg-gradient-to-r ${item.color} hover:opacity-90`
-                                    } text-white`}>
-                                     {item.isContact ? <IconPhone size={14} /> : isSoldOut ? null : isLoading ? <IconLoader size={14} className="animate-spin" /> : <IconShoppingCart size={14} />}
-                                     {isSoldOut ? 'Hết' : isLoading ? '...' : (item.isContact ? 'Liên hệ' : 'Mua')}
+                                    } text-white transition-all`}>
+                                     {item.isContact ? <IconPhone size={14} /> : isSoldOut ? null : (isLoading || isSubmitting) ? <IconLoader size={14} className="animate-spin" /> : <IconShoppingCart size={14} />}
+                                     {isSoldOut ? 'Hết' : (isLoading || isSubmitting) ? '...' : (item.isContact ? 'Liên hệ' : 'Mua')}
                                  </button>
                              </div>
                          </div>
@@ -1661,7 +1824,7 @@
                         </RevealOnScroll>
                     </section>
 
-                    {/* Pricing Overview */}
+                    {/* Pricing Overview - ĐÃ SỬA BANNER CHÉO */}
                     <section className="relative z-10 py-16 px-4">
                         <div className="max-w-5xl mx-auto">
                             <RevealOnScroll>
@@ -1674,15 +1837,20 @@
                             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                 {Object.values(PACKAGE_CONFIG).map((pkg, idx) => (
                                     <RevealOnScroll key={pkg.id} delay={idx * 100}>
-                                        <GlassCard className={`p-5 text-center h-full relative ${pkg.bestValue ? 'border-amber-500/50' : pkg.popular ? 'border-purple-500/50' : ''}`}>
+                                        <GlassCard className={`p-5 pt-8 text-center h-full relative overflow-hidden ${pkg.bestValue ? 'border-amber-500/50' : pkg.popular ? 'border-purple-500/50' : ''}`}>
+                                            {/* BANNER CHÉO GÓC TRÁI TRÊN */}
                                             {pkg.bestValue && (
-                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold rounded-full whitespace-nowrap">
-                                                    TIẾT KIỆM NHẤT
+                                                <div className="ribbon-wrapper">
+                                                    <div className="ribbon ribbon-best">
+                                                        TIẾT KIỆM
+                                                    </div>
                                                 </div>
                                             )}
                                             {pkg.popular && !pkg.bestValue && (
-                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">
-                                                    PHỔ BIẾN
+                                                <div className="ribbon-wrapper">
+                                                    <div className="ribbon ribbon-popular">
+                                                        PHỔ BIẾN
+                                                    </div>
                                                 </div>
                                             )}
                                             
@@ -1733,25 +1901,6 @@
                         </RevealOnScroll>
                     </section>
 
-                    {/* Features */}
-                    <section className="relative z-10 py-16">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {FEATURES.map((feature, idx) => (
-                                    <RevealOnScroll key={idx} delay={idx * 100}>
-                                        <GlassCard className="p-6 text-center h-full flex flex-col items-center">
-                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mx-auto mb-4 border border-cyan-500/20">
-                                                {React.cloneElement(feature.icon, { className: "w-7 h-7 text-cyan-400" })}
-                                            </div>
-                                            <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                                            <p className="text-sm text-gray-500 flex-1">{feature.description}</p>
-                                        </GlassCard>
-                                    </RevealOnScroll>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-
                     {/* GIỮA KÌ Section */}
                     <section id="giua-ki" className="py-20 px-4 max-w-7xl mx-auto">
                         <RevealOnScroll>
@@ -1774,7 +1923,12 @@
                             </div>
                         </RevealOnScroll>
                         
-                        {filteredGiuaKi.length > 0 ? (
+                        {/* GIAI ĐOẠN 2: Skeleton Loading khi đang tải */}
+                        {isLoadingStock ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {[1,2,3].map(i => <SkeletonCard key={i} />)}
+                            </div>
+                        ) : filteredGiuaKi.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {filteredGiuaKi.map((course, idx) => (
                                     <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
@@ -1813,7 +1967,11 @@
                             </div>
                         </RevealOnScroll>
                         
-                        {filteredCuoiKi.length > 0 ? (
+                        {isLoadingStock ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {[1,2,3].map(i => <SkeletonCard key={i} />)}
+                            </div>
+                        ) : filteredCuoiKi.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {filteredCuoiKi.map((course, idx) => (
                                     <CourseCard key={course.id} course={course} index={idx} onBuy={handleBuyClick} />
@@ -1888,7 +2046,7 @@
                                         <div className="bg-white/5 p-4 rounded-xl mb-4 border border-white/10">
                                             <div className="flex items-start gap-4 mb-4">
                                                 {selectedProduct?.image && (
-                                                    <img src={selectedProduct.image} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                                                    <img src={optimizeImageUrl(selectedProduct.image, 100, 70)} alt="" className="w-16 h-16 rounded-xl object-cover" loading="lazy" />
                                                 )}
                                                 <div className="flex-1">
                                                     <h3 className="font-bold text-white">{selectedProduct?.title}</h3>
@@ -1980,15 +2138,15 @@
                                         
                                         <div className="flex gap-4">
                                             <button onClick={() => setOrderStep(1)} className="flex-1 py-3 bg-gray-700 rounded-full font-bold hover:bg-gray-600 text-white">Quay lại</button>
-                                            <button onClick={handleConfirmOrder} disabled={isSubmitting} className="flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 text-white">
-                                                {isSubmitting ? 'Đang xử lý...' : 'Xác nhận & Thanh toán'}
+                                            <button onClick={handleConfirmOrder} disabled={isSubmitting} className={`flex-1 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 text-white ${isSubmitting ? 'opacity-50 cursor-wait' : ''}`}>
+                                                {isSubmitting ? <><IconLoader className="inline w-4 h-4 animate-spin mr-2" />Đang xử lý...</> : 'Xác nhận & Thanh toán'}
                                             </button>
                                         </div>
                                     </div>
                                 ) : orderStep === 2 ? (
                                     <div className="text-center space-y-6">
                                         <div className="bg-white p-4 rounded-3xl w-48 h-48 mx-auto shadow-lg shadow-white/10">
-                                            <img src={`${BANK_INFO.qrLink}?amount=${getTotalPrice()}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} alt="QR Thanh Toan" className="w-full h-full object-contain" />
+                                            <img src={`${BANK_INFO.qrLink}?amount=${getTotalPrice()}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} alt="QR Thanh Toan" className="w-full h-full object-contain" loading="lazy" />
                                         </div>
                                         <div className="bg-white/5 p-4 rounded-2xl text-left space-y-2 text-sm border border-white/10">
                                             <p className="flex justify-between"><span>Ngân hàng:</span> <span className="font-bold text-white">{BANK_INFO.bankId}</span></p>
@@ -2117,11 +2275,36 @@
                                         </div>
                                     </div>
                                     <textarea required placeholder="Chia sẻ cảm nhận..." rows={4} className="w-full bg-black/30 border border-gray-700 rounded-2xl p-3 outline-none focus:border-cyan-500 text-white" value={fbForm.message} onChange={handleInputChange} name="message" />
-                                    <button disabled={isSubmitting} className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90">
-                                        {isSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá'}
+                                    <button disabled={isSubmitting} className={`w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-bold hover:opacity-90 ${isSubmitting ? 'opacity-50 cursor-wait' : ''}`}>
+                                        {isSubmitting ? <><IconLoader className="inline w-4 h-4 animate-spin mr-2" />Đang gửi...</> : 'Gửi Đánh Giá'}
                                     </button>
                                 </form>
                             </GlassCard>
+                        </div>
+                    </section>
+
+                    {/* FEATURES - ĐÃ CHUYỂN XUỐNG TRƯỚC LIÊN HỆ */}
+                    <section className="relative z-10 py-16">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <RevealOnScroll>
+                                <div className="text-center mb-12">
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tại Sao Chọn AstroMind?</h2>
+                                    <p className="text-gray-400">Cam kết mang đến trải nghiệm tốt nhất cho bạn</p>
+                                </div>
+                            </RevealOnScroll>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {FEATURES.map((feature, idx) => (
+                                    <RevealOnScroll key={idx} delay={idx * 100}>
+                                        <GlassCard className="p-6 text-center h-full flex flex-col items-center">
+                                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                                                {React.cloneElement(feature.icon, { className: "w-7 h-7 text-white" })}
+                                            </div>
+                                            <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                                            <p className="text-sm text-gray-500 flex-1">{feature.description}</p>
+                                        </GlassCard>
+                                    </RevealOnScroll>
+                                ))}
+                            </div>
                         </div>
                     </section>
 
