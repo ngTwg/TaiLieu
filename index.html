@@ -2145,7 +2145,7 @@
                                     </div>
                                 ) : orderStep === 2 ? (
                                     <div className="text-center space-y-6">
-                                        <div className="bg-white p-4 rounded-3xl w-48 h-48 mx-auto shadow-lg shadow-white/10">
+                                        <div className="bg-white p-4 rounded-3xl w-80 h-80 mx-auto shadow-lg shadow-white/10">
                                             <img src={`${BANK_INFO.qrLink}?amount=${getTotalPrice()}&addInfo=${generatedOrderId}&accountName=${encodeURIComponent(BANK_INFO.accountName)}`} alt="QR Thanh Toan" className="w-full h-full object-contain" loading="lazy" />
                                         </div>
                                         <div className="bg-white/5 p-4 rounded-2xl text-left space-y-2 text-sm border border-white/10">
